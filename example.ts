@@ -7,7 +7,7 @@ async function example() {
     const results = await client.search.channels("녹두로로")
     const channel = results.channels[0]
 
-    const liveStatus = await client.lives.status(channel.channelId)
+    const liveStatus = await client.live.status(channel.channelId)
 
     const chzzkChat = client.chat(liveStatus.chatChannelId)
 

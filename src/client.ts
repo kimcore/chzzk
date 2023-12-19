@@ -29,7 +29,7 @@ export class ChzzkClient {
             .then(data => data['content'])
     }
 
-    lives = new ChzzkLive(this)
+    live = new ChzzkLive(this)
 
     async video(videoNo: string | number): Promise<Video> {
         return this.fetch(`${API_URL}/service/v1/videos/${videoNo}`)

@@ -1,9 +1,18 @@
-import {DEFAULT_SEARCH_OPTIONS, SearchOptions} from "./options"
 import {API_URL, GAME_API_URL} from "../consts"
 import {Channel} from "./channel"
 import {SearchResultVideo} from "./video"
 import {Live} from "./live"
 import {ChzzkClient} from "../client"
+
+export interface SearchOptions {
+    size: number
+    offset: number
+}
+
+export const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
+    size: 12,
+    offset: 0
+}
 
 interface SearchResult {
     size: number
@@ -103,7 +112,7 @@ export class ChzzkSearch {
         })
     }
 
-    async searchAutoComplete(
+    async autoComplete(
         keyword: string,
         options: SearchOptions = DEFAULT_SEARCH_OPTIONS
     ): Promise<string[]> {
