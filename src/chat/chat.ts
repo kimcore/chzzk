@@ -1,21 +1,38 @@
 import WebSocket from "ws"
-import {ChatCmd} from "./cmd"
+import {ChatCmd, ChatType} from "./types"
+import {GAME_API_URL} from "../consts"
 
-interface Event {
+interface Events {
     chat: ChatEvent
+    donation: DonationEvent
     connect: null
     disconnect: null
 }
 
-export interface ChatEvent {
-    profile: ChatProfile
-    extras: ChatExtras
+interface Event {
+    profile: Profile
     message: string,
     memberCount: number,
     time: number
 }
 
-export interface ChatProfile {
+export interface ChatEvent extends Event {
+    extras: ChatExtras
+}
+
+export interface DonationEvent extends Event {
+    extras: DonationExtras
+}
+
+export interface DonationRank {
+    userIdHash: string
+    nickName: string
+    verifiedMark: boolean
+    donationAmount: number
+    ranking: number
+}
+
+export interface Profile {
     userIdHash: string
     nickname: string
     profileImageUrl?: string
@@ -23,16 +40,35 @@ export interface ChatProfile {
     badge: string // unknown
     title: string
     verifiedMark: boolean
-    activityBadges: [] // unknown
+    activityBadges: ActivityBadge[]
     streamingProperty: Record<string, string> // unknown
 }
 
-export interface ChatExtras {
+export interface ActivityBadge {
+    badgeNo: number
+    badgeId: string
+    imageUrl: string
+    title: string
+    description: string
+    activated: boolean
+}
+
+interface Extras {
     chatType: "STREAMING"
-    emojis: Record<string, string>
+    emojis: Record<string, string> | string
     osType: "PC" | "AOS" | "IOS"
     streamingChannelId: string
+}
+
+export interface ChatExtras extends Extras {
     extraToken: string
+}
+
+export interface DonationExtras extends Extras {
+    payType: string
+    payAmount: number
+    weeklyRankList: DonationRank[],
+    donationUserWeeklyRank: number
 }
 
 export class ChzzkChat {
@@ -54,7 +90,7 @@ export class ChzzkChat {
     }
 
     async connect() {
-        const url = `https://comm-api.game.naver.com/nng_main/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
+        const url = `${GAME_API_URL}/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
         const json = await fetch(url).then(r => r.json())
 
         this.accessToken = json['content']['accessToken']
@@ -131,20 +167,31 @@ export class ChzzkChat {
                     const extras = JSON.parse(chat['extras'])
                     const message = json.cmd == ChatCmd.CHAT ? chat['msg'] : chat['content']
 
-                    this.emit('chat', {
+                    const type = chat['msgTypeCode'] || chat['messageTypeCode']
+
+                    const memberCount = chat['mbrCnt'] || chat['memberCount']
+                    const time = chat['msgTime'] || chat['createTime']
+
+                    const payload = {
                         profile,
                         extras,
                         message,
-                        memberCount: chat['mbrCount'] || chat['memberCount'],
-                        time: chat['msgTime'] || chat['createTime']
-                    })
+                        memberCount,
+                        time
+                    }
+
+                    if (type == ChatType.DONATION) {
+                        this.emit('donation', payload)
+                    } else {
+                        this.emit('chat', payload)
+                    }
                 }
 
                 break
         }
     }
 
-    on<T extends keyof Event>(event: T, handler: (data: Event[typeof event]) => void) {
+    on<T extends keyof Events>(event: T, handler: (data: Events[typeof event]) => void) {
         const e = event as string
         this.handlers[e] = this.handlers[e] || []
         this.handlers[e].push(handler)

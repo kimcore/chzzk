@@ -4,10 +4,10 @@
 
 현재 구현된 기능은 다음과 같습니다.
 
-- 채널 검색
+- 검색 (채널, 영상, 생방송)
 - 채널 정보 조회
-- 채널 방송 상태 조회
-- 채팅 (수신만 가능)
+- 채널 방송 상태, 상세 정보 조회
+- 채팅 (수신만 가능, 도네이션 알림 포함)
 
 ## 설치
 
@@ -37,9 +37,16 @@ chzzkChat.on("connect", (message) => {
 })
 
 chzzkChat.on('chat', chat => {
-    console.log(`[${chat.extras.osType}] ${chat.profile.nickname}: ${chat.message}`)
+    console.log(`${chat.profile.nickname}: ${chat.message}`)
+})
+
+chzzkChat.on('donation', donation => {
+    console.log(`\n>> ${donation.profile.nickname} 님이 ${donation.extras.payAmount}원 후원`)
+    if (donation.message) {
+        console.log(`>> ${donation.message}`)
+    }
+    console.log()
 })
 
 await chzzkChat.connect()
-
 ```

@@ -15,7 +15,15 @@ async function example() {
     })
 
     chzzkChat.on('chat', chat => {
-        console.log(`[${chat.extras.osType}] ${chat.profile.nickname}: ${chat.message}`)
+        console.log(`${chat.profile.nickname}: ${chat.message}`)
+    })
+
+    chzzkChat.on('donation', donation => {
+        console.log(`\n>> ${donation.profile.nickname} 님이 ${donation.extras.payAmount}원 후원`)
+        if (donation.message) {
+            console.log(`>> ${donation.message}`)
+        }
+        console.log()
     })
 
     await chzzkChat.connect()
