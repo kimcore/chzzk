@@ -1,5 +1,6 @@
 import {API_URL} from "../consts"
 import {PartialChannel} from "./channel"
+import {ChzzkClient} from "../client"
 
 export interface BaseVideo {
     videoNo: number
@@ -30,10 +31,4 @@ export interface Video extends BaseVideo {
     vodStatus: string
     prevVideo?: BaseVideo
     nextVideo?: BaseVideo
-}
-
-export async function getVideo(videoNo: string | number): Promise<Video> {
-    return fetch(`${API_URL}/service/v1/videos/${videoNo}`)
-        .then(r => r.json())
-        .then(r => r['content'])
 }

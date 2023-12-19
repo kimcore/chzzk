@@ -1,17 +1,19 @@
 // import * from "chzzk"
-import * as chzzk from "./src"
+import {ChzzkClient} from "./src"
 
 async function example() {
-    const channels = await chzzk.searchChannels("김진우")
-    const channel = channels[0]
+    const client = new ChzzkClient()
 
-    const liveStatus = await chzzk.getLiveStatus(channel.channelId)
+    const results = await client.search.channels("녹두로로")
+    const channel = results.channels[0]
 
-    const chzzkChat = new chzzk.ChzzkChat(liveStatus.chatChannelId)
+    const liveStatus = await client.lives.status(channel.channelId)
 
-    chzzkChat.on("connect", (message) => {
-        console.log("Connected")
-        chzzkChat.requestRecentChat(50) // 최근 50개의 채팅을 요청, 필수는 아님
+    const chzzkChat = client.chat(liveStatus.chatChannelId)
+
+    chzzkChat.on('connect', () => {
+        console.log('Connected')
+        chzzkChat.requestRecentChat(50)
     })
 
     chzzkChat.on('chat', chat => {

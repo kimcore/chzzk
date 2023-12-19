@@ -4,10 +4,11 @@
 
 현재 구현된 기능은 다음과 같습니다.
 
+- 로그인 (쿠키 사용)
 - 검색 (채널, 영상, 생방송)
 - 채널 정보 조회
 - 채널 방송 상태, 상세 정보 조회
-- 채팅 (수신만 가능, 도네이션 알림 포함)
+- 채팅
 
 ## 설치
 
@@ -22,18 +23,27 @@ yarn add chzzk
 ## 예시
 
 ```ts
-import {ChzzkChat, getLiveStatus, searchChannels} from "chzzk"
+// 로그인 옵션 (선택사항)
+const options = {
+    nidAuth: "NID_AUT 쿠키",
+    nidSession: "NID_SES 쿠키"
+}
 
-const channels = await searchChannels("김진우")
-const channel = channels[0]
+const client = new ChzzkClient(options)
 
-const liveStatus = await getLiveStatus(channel.channelId)
+const results = await client.search.channels("녹두로로")
+const channel = results.channels[0]
 
-const chzzkChat = new ChzzkChat(liveStatus.chatChannelId)
+const liveStatus = await client.lives.status(channel.channelId)
 
-chzzkChat.on("connect", (message) => {
-    console.log("Connected")
-    chzzkChat.requestRecentChat(50) // 최근 50개의 채팅을 요청, 필수는 아님
+const chzzkChat = client.chat(liveStatus.chatChannelId)
+
+chzzkChat.on('connect', () => {
+    console.log('Connected')
+    chzzkChat.requestRecentChat(50) // 최근 50개의 채팅을 요청 (선택사항)
+
+    // 채팅 전송 (로그인 시에만 가능)
+    chzzkChat.sendChat('안녕하세요')
 })
 
 chzzkChat.on('chat', chat => {
@@ -50,3 +60,6 @@ chzzkChat.on('donation', donation => {
 
 await chzzkChat.connect()
 ```
+
+## 로그인
+`chzzk.naver.com` 에 로그인 하신 후, 개발자 도구를 열어 `Application > Cookies > https://chzzk.naver.com` 에서 `NID_AUT` 과 `NID_SES` 쿠키를 확인하실 수 있습니다.

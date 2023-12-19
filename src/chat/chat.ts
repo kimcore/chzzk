@@ -1,86 +1,22 @@
 import WebSocket from "ws"
-import {ChatCmd, ChatType} from "./types"
+import {ChatCmd, ChatType, Events} from "./types"
 import {GAME_API_URL} from "../consts"
-
-interface Events {
-    chat: ChatEvent
-    donation: DonationEvent
-    connect: null
-    disconnect: null
-}
-
-interface Event {
-    profile: Profile
-    message: string,
-    memberCount: number,
-    time: number
-}
-
-export interface ChatEvent extends Event {
-    extras: ChatExtras
-}
-
-export interface DonationEvent extends Event {
-    extras: DonationExtras
-}
-
-export interface DonationRank {
-    userIdHash: string
-    nickName: string
-    verifiedMark: boolean
-    donationAmount: number
-    ranking: number
-}
-
-export interface Profile {
-    userIdHash: string
-    nickname: string
-    profileImageUrl?: string
-    userRoleCode: string
-    badge: string // unknown
-    title: string
-    verifiedMark: boolean
-    activityBadges: ActivityBadge[]
-    streamingProperty: Record<string, string> // unknown
-}
-
-export interface ActivityBadge {
-    badgeNo: number
-    badgeId: string
-    imageUrl: string
-    title: string
-    description: string
-    activated: boolean
-}
-
-interface Extras {
-    chatType: "STREAMING"
-    emojis: Record<string, string> | string
-    osType: "PC" | "AOS" | "IOS"
-    streamingChannelId: string
-}
-
-export interface ChatExtras extends Extras {
-    extraToken: string
-}
-
-export interface DonationExtras extends Extras {
-    payType: string
-    payAmount: number
-    weeklyRankList: DonationRank[],
-    donationUserWeeklyRank: number
-}
+import {ChzzkClient} from "../client"
 
 export class ChzzkChat {
+    connected: boolean = false
+
+    private readonly client: ChzzkClient
     private ws: WebSocket
-    private connected: boolean = false
     private readonly chatChannelId: string
     private accessToken: string
     private sid: string
+    private uid: string
     private handlers: [string, (data: Event) => void][] = []
     private readonly defaults = {}
 
-    constructor(chatChannelId: string) {
+    constructor(chatChannelId: string, client: ChzzkClient) {
+        this.client = client
         this.chatChannelId = chatChannelId
         this.defaults = {
             cid: chatChannelId,
@@ -91,7 +27,11 @@ export class ChzzkChat {
 
     async connect() {
         const url = `${GAME_API_URL}/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
-        const json = await fetch(url).then(r => r.json())
+        const json = await this.client.fetch(url).then(r => r.json())
+
+        this.uid = this.client.hasAuth ?
+            await this.client.user().then(user => user.userIdHash) :
+            null
 
         this.accessToken = json['content']['accessToken']
 
@@ -101,9 +41,9 @@ export class ChzzkChat {
             this.ws.send(JSON.stringify({
                 bdy: {
                     accTkn: this.accessToken,
-                    auth: "READ",
+                    auth: this.uid ? "SEND": "READ",
                     devType: 2001,
-                    uid: null
+                    uid: this.uid
                 },
                 cmd: ChatCmd.CONNECT,
                 tid: 1,
@@ -114,11 +54,24 @@ export class ChzzkChat {
         this.ws.on("message", this.handleMessage.bind(this))
 
         this.ws.on('close', () => {
-            this.ws = null
-            this.connected = false
-            this.sid = null
             this.emit('disconnect', null)
+
+            this.ws = null
+            this.disconnect()
         })
+    }
+
+    async disconnect() {
+        if (!this.connected) {
+            throw new Error('Not connected')
+        }
+
+        this.ws?.close()
+
+        this.ws = null
+        this.sid = null
+        this.uid = null
+        this.connected = false
     }
 
     requestRecentChat(count: number = 50) {
@@ -131,6 +84,37 @@ export class ChzzkChat {
             cmd: ChatCmd.REQUEST_RECENT_CHAT,
             sid: this.sid,
             tid: 2,
+            ...this.defaults
+        }))
+    }
+
+    sendChat(message: string) {
+        if (!this.connected) {
+            throw new Error('Not connected')
+        }
+
+        if (!this.uid) {
+            throw new Error('Not logged in')
+        }
+
+        const extras = {
+            chatType: "STREAMING",
+            emojis: "",
+            osType: "PC",
+            streamingChannelId: this.chatChannelId
+        }
+
+        this.ws.send(JSON.stringify({
+            bdy: {
+                extras: JSON.stringify(extras),
+                msg: message,
+                msgTime: Date.now(),
+                msgTypeCode: ChatType.TEXT
+            },
+            retry: false,
+            cmd: ChatCmd.SEND_CHAT,
+            sid: this.sid,
+            tid: 3,
             ...this.defaults
         }))
     }

@@ -1,5 +1,6 @@
 import {PartialChannel} from "./channel"
 import {API_URL} from "../consts"
+import {ChzzkClient} from "../client"
 
 export interface Live {
     liveTitle: string
@@ -106,39 +107,47 @@ export interface ChannelLiveDetail extends Live {
     livePollingStatus: LivePollingStatus
 }
 
-export async function getLiveStatus(channelId: string): Promise<LiveStatus> {
-    return fetch(`${API_URL}/polling/v1/channels/${channelId}/live-status`)
-        .then(r => r.json())
-        .then(data => {
-            const content = data['content']
-            const livePollingStatusJson = content['livePollingStatusJson']
-            const livePollingStatus = JSON.parse(livePollingStatusJson)
-            delete content['livePollingStatusJson']
-            return {
-                ...content,
-                livePollingStatus
-            }
-        })
-}
+export class ChzzkLive {
+    private client: ChzzkClient
 
-export async function getLiveDetail(channelId: string): Promise<ChannelLiveDetail> {
-    return fetch(`${API_URL}/service/v1/channels/${channelId}/live-detail`)
-        .then(r => r.json())
-        .then(data => {
-            const content = data['content']
-            const livePollingStatusJson = content['livePollingStatusJson']
-            const livePollingStatus = JSON.parse(livePollingStatusJson)
-            delete content['livePollingStatusJson']
+    constructor(client: ChzzkClient) {
+        this.client = client
+    }
 
-            const livePlaybackJson = content['livePlaybackJson']
-            const livePlayback = livePlaybackJson ? JSON.parse(livePlaybackJson) : null
+    async status(channelId: string): Promise<LiveStatus> {
+        return this.client.fetch(`${API_URL}/polling/v1/channels/${channelId}/live-status`)
+            .then(r => r.json())
+            .then(data => {
+                const content = data['content']
+                const livePollingStatusJson = content['livePollingStatusJson']
+                const livePollingStatus = JSON.parse(livePollingStatusJson)
+                delete content['livePollingStatusJson']
+                return {
+                    ...content,
+                    livePollingStatus
+                }
+            })
+    }
 
-            delete content['livePlaybackJson']
+    async detail(channelId: string): Promise<ChannelLiveDetail> {
+        return this.client.fetch(`${API_URL}/service/v1/channels/${channelId}/live-detail`)
+            .then(r => r.json())
+            .then(data => {
+                const content = data['content']
+                const livePollingStatusJson = content['livePollingStatusJson']
+                const livePollingStatus = JSON.parse(livePollingStatusJson)
+                delete content['livePollingStatusJson']
 
-            return {
-                ...content,
-                livePollingStatus,
-                livePlayback
-            }
-        })
+                const livePlaybackJson = content['livePlaybackJson']
+                const livePlayback = livePlaybackJson ? JSON.parse(livePlaybackJson) : null
+
+                delete content['livePlaybackJson']
+
+                return {
+                    ...content,
+                    livePollingStatus,
+                    livePlayback
+                }
+            })
+    }
 }

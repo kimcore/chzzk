@@ -3,6 +3,7 @@ import {API_URL, GAME_API_URL} from "../consts"
 import {Channel} from "./channel"
 import {SearchResultVideo} from "./video"
 import {Live} from "./live"
+import {ChzzkClient} from "../client"
 
 interface SearchResult {
     size: number
@@ -21,91 +22,99 @@ export interface LiveSearchResult extends SearchResult {
     lives: Live[]
 }
 
-async function search(type: string, keyword: string, options: SearchOptions = DEFAULT_SEARCH_OPTIONS) {
-    const params = new URLSearchParams({
-        keyword,
-        size: options.size.toString(),
-        offset: options.offset.toString()
-    }).toString()
+export class ChzzkSearch {
+    private client: ChzzkClient
 
-    return fetch(`${API_URL}/service/v1/search/${type}?${params}`).then(r => r.json())
-}
+    constructor(client: ChzzkClient) {
+        this.client = client
+    }
 
-export async function searchVideos(
-    keyword: string,
-    options: SearchOptions = DEFAULT_SEARCH_OPTIONS
-): Promise<VideoSearchResult> {
-    return search("videos", keyword, options).then(r => {
-        const content = r['content']
-        return {
-            size: content['size'],
-            nextOffset: content['page']['next']['offset'],
-            videos: content['data'].map((data: Record<string, any>) => {
-                const video = data['video']
-                const channel = data['channel']
+    private async search(type: string, keyword: string, options: SearchOptions = DEFAULT_SEARCH_OPTIONS) {
+        const params = new URLSearchParams({
+            keyword,
+            size: options.size.toString(),
+            offset: options.offset.toString()
+        }).toString()
 
-                return {
-                    ...video,
-                    channel
-                }
-            })
-        }
-    })
-}
+        return this.client.fetch(`${API_URL}/service/v1/search/${type}?${params}`).then(r => r.json())
+    }
 
-export async function searchLives(
-    keyword: string,
-    options: SearchOptions = DEFAULT_SEARCH_OPTIONS
-): Promise<LiveSearchResult> {
-    return search("lives", keyword, options).then(r => {
-        const content = r['content']
-        return {
-            size: content['size'],
-            nextOffset: content['page']['next']['offset'],
-            lives: content['data'].map((data: Record<string, any>) => {
-                const live = data['live']
-                const channel = data['channel']
+    async videos(
+        keyword: string,
+        options: SearchOptions = DEFAULT_SEARCH_OPTIONS
+    ): Promise<VideoSearchResult> {
+        return this.search("videos", keyword, options).then(r => {
+            const content = r['content']
+            return {
+                size: content['size'],
+                nextOffset: content['page']['next']['offset'],
+                videos: content['data'].map((data: Record<string, any>) => {
+                    const video = data['video']
+                    const channel = data['channel']
 
-                const livePlaybackJson = live['livePlaybackJson']
-                const livePlayback = livePlaybackJson ? JSON.parse(livePlaybackJson) : null
+                    return {
+                        ...video,
+                        channel
+                    }
+                })
+            }
+        })
+    }
 
-                delete live['livePlaybackJson']
+    async lives(
+        keyword: string,
+        options: SearchOptions = DEFAULT_SEARCH_OPTIONS
+    ): Promise<LiveSearchResult> {
+        return this.search("lives", keyword, options).then(r => {
+            const content = r['content']
+            return {
+                size: content['size'],
+                nextOffset: content['page']['next']['offset'],
+                lives: content['data'].map((data: Record<string, any>) => {
+                    const live = data['live']
+                    const channel = data['channel']
 
-                return {
-                    ...live,
-                    livePlayback,
-                    channel
-                }
-            })
-        }
-    })
-}
+                    const livePlaybackJson = live['livePlaybackJson']
+                    const livePlayback = livePlaybackJson ? JSON.parse(livePlaybackJson) : null
 
-export async function searchChannels(
-    keyword: string,
-    options: SearchOptions = DEFAULT_SEARCH_OPTIONS
-): Promise<ChannelSearchResult> {
-    return search("channels", keyword, options).then(r => {
-        const content = r['content']
-        return {
-            size: content['size'],
-            nextOffset: content['page']['next']['offset'],
-            channels: content['data'].map((data: Record<string, any>) => data['channel'])
-        }
-    })
-}
+                    delete live['livePlaybackJson']
 
-export async function searchAutoComplete(
-    keyword: string,
-    options: SearchOptions = DEFAULT_SEARCH_OPTIONS
-): Promise<string[]> {
-    const params = new URLSearchParams({
-        keyword,
-        size: options.size.toString(),
-        offset: options.offset.toString()
-    }).toString()
+                    return {
+                        ...live,
+                        livePlayback,
+                        channel
+                    }
+                })
+            }
+        })
+    }
 
-    return fetch(`${GAME_API_URL}/v2/search/lounges/auto-complete?${params}`)
-        .then(r => r.json())
-        .then(data => data['content']['data'])
+    async channels(
+        keyword: string,
+        options: SearchOptions = DEFAULT_SEARCH_OPTIONS
+    ): Promise<ChannelSearchResult> {
+        return this.search("channels", keyword, options).then(r => {
+            const content = r['content']
+            return {
+                size: content['size'],
+                nextOffset: content['page']['next']['offset'],
+                channels: content['data'].map((data: Record<string, any>) => data['channel'])
+            }
+        })
+    }
+
+    async searchAutoComplete(
+        keyword: string,
+        options: SearchOptions = DEFAULT_SEARCH_OPTIONS
+    ): Promise<string[]> {
+        const params = new URLSearchParams({
+            keyword,
+            size: options.size.toString(),
+            offset: options.offset.toString()
+        }).toString()
+
+        return this.client.fetch(`${GAME_API_URL}/v2/search/lounges/auto-complete?${params}`)
+            .then(r => r.json())
+            .then(data => data['content']['data'])
+    }
 }
