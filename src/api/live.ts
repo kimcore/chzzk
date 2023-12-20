@@ -54,23 +54,35 @@ export interface Media {
     mediaId: string
     protocol: string
     path: string
-    encodingTrack: EncodingTrack[]
+    encodingTrack: (VideoEncodingTrack | AudioEncodingTrack)[]
 }
 
 export interface EncodingTrack {
     encodingTrackId: string
+    audioBitRate: number
+    audioSamplingRate: number
+    audioChannel: number
+    avoidReencoding: boolean
+    audioOnly: boolean
+}
+
+export interface VideoEncodingTrack extends EncodingTrack {
     videoProfile: string
     audioProfile: string
     videoCodec: string
     videoBitRate: number
-    audioBitRate: number
     videoFrameRate: string
     videoWidth: number
     videoHeight: number
-    audioSamplingRate: number
-    audioChannel: number
-    avoidReencoding: boolean
     videoDynamicRange: string
+    audioOnly: false | undefined
+}
+
+export interface AudioEncodingTrack extends EncodingTrack {
+    encodingTrackId: "alow.stream"
+    path: string
+    audioCodec: string
+    audioOnly: true
 }
 
 export interface LiveStatus {

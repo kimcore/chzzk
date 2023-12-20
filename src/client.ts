@@ -44,7 +44,7 @@ export class ChzzkClient {
             throw new Error("Invalid chat channel ID")
         }
 
-        return new ChzzkChat(chatChannelId, this)
+        return ChzzkChat.fromClient(chatChannelId, this)
     }
 
     fetch(url: string, options?: RequestInit): Promise<Response> {

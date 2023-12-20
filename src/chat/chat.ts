@@ -1,4 +1,4 @@
-import WebSocket from "ws"
+import WebSocket from "isomorphic-ws"
 import {ChatCmd, ChatType, Events} from "./types"
 import {GAME_API_URL} from "../consts"
 import {ChzzkClient} from "../client"
@@ -9,13 +9,18 @@ export class ChzzkChat {
     private readonly client: ChzzkClient
     private ws: WebSocket
     private readonly chatChannelId: string
-    private accessToken: string
+    private accessToken?: string
     private sid: string
-    private uid: string
+    private uid?: string
     private handlers: [string, (data: Event) => void][] = []
     private readonly defaults = {}
 
-    constructor(chatChannelId: string, client: ChzzkClient) {
+    private constructor(
+        chatChannelId: string,
+        client: ChzzkClient = null,
+        accessToken: string = null,
+        uid: string = null
+    ) {
         this.client = client
         this.chatChannelId = chatChannelId
         this.defaults = {
@@ -23,17 +28,33 @@ export class ChzzkChat {
             svcid: "game",
             ver: "2"
         }
+        this.accessToken = accessToken
+        this.uid = uid
+    }
+
+    static fromClient(chatChannelId: string, client: ChzzkClient) {
+        return new ChzzkChat(chatChannelId, client)
+    }
+
+    static fromAccessToken(chatChannelId: string, accessToken: string, uid?: string) {
+        return new ChzzkChat(chatChannelId, null, accessToken, uid)
     }
 
     async connect() {
-        const url = `${GAME_API_URL}/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
-        const json = await this.client.fetch(url).then(r => r.json())
+        if (this.connected) {
+            throw new Error('Already connected')
+        }
 
-        this.uid = this.client.hasAuth ?
-            await this.client.user().then(user => user.userIdHash) :
-            null
+        if (this.client) {
+            const url = `${GAME_API_URL}/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
+            const json = await this.client.fetch(url).then(r => r.json())
 
-        this.accessToken = json['content']['accessToken']
+            this.uid = this.client.hasAuth ?
+                await this.client.user().then(user => user.userIdHash) :
+                null
+
+            this.accessToken = json['content']['accessToken']
+        }
 
         this.ws = new WebSocket("wss://kr-ss1.chat.naver.com/chat")
 
@@ -41,7 +62,7 @@ export class ChzzkChat {
             this.ws.send(JSON.stringify({
                 bdy: {
                     accTkn: this.accessToken,
-                    auth: this.uid ? "SEND": "READ",
+                    auth: this.uid ? "SEND" : "READ",
                     devType: 2001,
                     uid: this.uid
                 },
@@ -70,7 +91,12 @@ export class ChzzkChat {
 
         this.ws = null
         this.sid = null
-        this.uid = null
+
+        if (this.client) {
+            this.accessToken = null
+            this.uid = null
+        }
+
         this.connected = false
     }
 
