@@ -58,7 +58,7 @@ export class ChzzkChat {
 
         this.ws = new WebSocket("wss://kr-ss1.chat.naver.com/chat")
 
-        this.ws.on("open", () => {
+        this.ws.onopen = () => {
             this.ws.send(JSON.stringify({
                 bdy: {
                     accTkn: this.accessToken,
@@ -70,16 +70,16 @@ export class ChzzkChat {
                 tid: 1,
                 ...this.defaults
             }))
-        })
+        }
 
-        this.ws.on("message", this.handleMessage.bind(this))
+        this.ws.onmessage = this.handleMessage.bind(this)
 
-        this.ws.on('close', () => {
+        this.ws.onclose = () => {
             this.emit('disconnect', null)
 
             this.ws = null
             this.disconnect()
-        })
+        }
     }
 
     async disconnect() {
