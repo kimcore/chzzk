@@ -54,7 +54,7 @@ const chzzkChat = client.chat(chatChannelId)
 chzzkChat.on('connect', () => {
     console.log('Connected')
 
-    // 최근 50개의 채팅을 요청 (선택사항)
+    // 최근 50개의 채팅을 요청 (선택사항, 도네 및 시스템 메시지 포함이므로 주의)
     chzzkChat.requestRecentChat(50)
 
     // 채팅 전송 (로그인 시에만 가능)
@@ -63,7 +63,8 @@ chzzkChat.on('connect', () => {
 
 // 일반 채팅
 chzzkChat.on('chat', chat => {
-    console.log(`${chat.profile.nickname}: ${chat.message}`)
+    const message = chat.hidden ? "[블라인드 처리 됨]" : chat.message
+    console.log(`${chat.profile.nickname}: ${message}`)
 })
 
 // 후원 채팅
@@ -73,6 +74,11 @@ chzzkChat.on('donation', donation => {
         console.log(`>> ${donation.message}`)
     }
     console.log()
+})
+
+// 시스템 메시지
+chzzkChat.on('systemMessage', systemMessage => {
+    console.log(systemMessage.extras.description)
 })
 
 // 채팅 연결

@@ -15,28 +15,36 @@ export enum ChatType {
     STICKER = 3,
     VIDEO = 4,
     RICH = 5,
-    DONATION = 10
+    DONATION = 10,
+    SYSTEM_MESSAGE = 30
 }
 export interface Events {
     chat: ChatEvent
     donation: DonationEvent
+    systemMessage: SystemMessageEvent
     connect: null
     disconnect: null
 }
 
 interface Event {
-    profile: Profile
     message: string,
+    hidden: boolean,
     memberCount: number,
     time: number
 }
 
 export interface ChatEvent extends Event {
-    extras: ChatExtras
+    profile: Profile
+    extras?: ChatExtras
 }
 
 export interface DonationEvent extends Event {
+    profile: Profile
     extras: DonationExtras
+}
+
+export interface SystemMessageEvent extends Event {
+    extras: SystemMessageExtras
 }
 
 export interface DonationRank {
@@ -52,11 +60,16 @@ export interface Profile {
     nickname: string
     profileImageUrl?: string
     userRoleCode: string
-    badge: string // unknown
-    title: string
+    badge?: {
+        imageUrl: string
+    }
+    title?: {
+        name: string
+        color: string
+    }
     verifiedMark: boolean
     activityBadges: ActivityBadge[]
-    streamingProperty: Record<string, string> // unknown
+    streamingProperty?: Record<string, string> // unknown
 }
 
 export interface ActivityBadge {
@@ -84,4 +97,16 @@ export interface DonationExtras extends Extras {
     payAmount: number
     weeklyRankList: DonationRank[],
     donationUserWeeklyRank: number
+}
+
+export interface SystemMessageExtras {
+    description: string
+    styleType: number
+    visibleRoles: string[]
+    params: {
+        registerNickname: string
+        targetNickname: string
+        registerChatProfile: Profile
+        targetProfile: Profile
+    }
 }

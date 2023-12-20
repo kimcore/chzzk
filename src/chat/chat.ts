@@ -174,26 +174,52 @@ export class ChzzkChat {
 
                 for (const chat of chats) {
                     const profile = JSON.parse(chat['profile'])
-                    const extras = JSON.parse(chat['extras'])
+                    const extras = chat['extras'] ? JSON.parse(chat['extras']) : null
+
                     const message = json.cmd == ChatCmd.CHAT ? chat['msg'] : chat['content']
 
                     const type = chat['msgTypeCode'] || chat['messageTypeCode']
 
+                    if (type == ChatType.SYSTEM_MESSAGE) {
+                        const registerChatProfileJson = extras.params?.['registerChatProfileJson']
+
+                        if (registerChatProfileJson) {
+                            extras.params['registerChatProfile'] = JSON.parse(registerChatProfileJson)
+                            delete extras.params['registerChatProfileJson']
+                        }
+
+                        const targetChatProfileJson = extras.params?.['targetChatProfileJson']
+
+                        if (targetChatProfileJson) {
+                            extras.params['targetChatProfile'] = JSON.parse(targetChatProfileJson)
+                            delete extras.params['targetChatProfileJson']
+                        }
+                    }
+
                     const memberCount = chat['mbrCnt'] || chat['memberCount']
                     const time = chat['msgTime'] || chat['createTime']
+
+                    const hidden = (chat['msgStatusType'] || chat['messageStatusType']) == "HIDDEN"
 
                     const payload = {
                         profile,
                         extras,
+                        hidden,
                         message,
                         memberCount,
                         time
                     }
 
-                    if (type == ChatType.DONATION) {
-                        this.emit('donation', payload)
-                    } else {
-                        this.emit('chat', payload)
+                    switch (type) {
+                        case ChatType.TEXT:
+                            this.emit('chat', payload)
+                            break
+                        case ChatType.DONATION:
+                            this.emit('donation', payload)
+                            break
+                        case ChatType.SYSTEM_MESSAGE:
+                            this.emit('systemMessage', payload)
+                            break
                     }
                 }
 
