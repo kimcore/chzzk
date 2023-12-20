@@ -1,4 +1,4 @@
-import WebSocket from "isomorphic-ws"
+import WebSocket, {MessageEvent} from "isomorphic-ws"
 import {ChatCmd, ChatType, Events} from "./types"
 import {GAME_API_URL} from "../consts"
 import {ChzzkClient} from "../client"
@@ -153,8 +153,8 @@ export class ChzzkChat {
         }
     }
 
-    private async handleMessage(data: Buffer) {
-        const json = JSON.parse(data.toString("utf8"))
+    private async handleMessage(data: MessageEvent) {
+        const json = JSON.parse(data.data as string)
 
         switch (json.cmd) {
             case ChatCmd.CONNECTED:
