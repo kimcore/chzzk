@@ -27,6 +27,7 @@ export class ChzzkClient {
         return this.fetch(`${API_URL}/service/v1/channels/${channelId}`)
             .then(r => r.json())
             .then(data => data['content'])
+            .then(content => content.channelId ? content : null)
     }
 
     live = new ChzzkLive(this)
