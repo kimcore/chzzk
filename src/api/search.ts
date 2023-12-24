@@ -19,6 +19,10 @@ interface SearchResult {
     nextOffset: number
 }
 
+interface SearchResultWithData extends SearchResult {
+    data: Record<string, any>[]
+}
+
 export interface ChannelSearchResult extends SearchResult {
     channels: Channel[]
 }
@@ -38,14 +42,26 @@ export class ChzzkSearch {
         this.client = client
     }
 
-    private async search(type: string, keyword: string, options: SearchOptions = DEFAULT_SEARCH_OPTIONS) {
+    private async search(type: string, keyword: string, options: SearchOptions = DEFAULT_SEARCH_OPTIONS): Promise<SearchResultWithData> {
         const params = new URLSearchParams({
             keyword,
             size: options.size.toString(),
             offset: options.offset.toString()
         }).toString()
 
-        return this.client.fetch(`${API_URL}/service/v1/search/${type}?${params}`).then(r => r.json())
+        return this.client.fetch(`${API_URL}/service/v1/search/${type}?${params}`)
+            .then(r => r.json())
+            .then(data => {
+                const content = data['content']
+
+                if (!content) return null
+
+                return {
+                    size: content['size'],
+                    nextOffset: content['page']?.['next']?.['offset'] ?? 0,
+                    data: content['data']
+                }
+            })
     }
 
     async videos(
@@ -53,11 +69,10 @@ export class ChzzkSearch {
         options: SearchOptions = DEFAULT_SEARCH_OPTIONS
     ): Promise<VideoSearchResult> {
         return this.search("videos", keyword, options).then(r => {
-            const content = r['content']
             return {
-                size: content['size'],
-                nextOffset: content['page']['next']['offset'],
-                videos: content['data'].map((data: Record<string, any>) => {
+                size: r.size,
+                nextOffset: r.nextOffset,
+                videos: r.data.map((data: Record<string, any>) => {
                     const video = data['video']
                     const channel = data['channel']
 
@@ -75,11 +90,10 @@ export class ChzzkSearch {
         options: SearchOptions = DEFAULT_SEARCH_OPTIONS
     ): Promise<LiveSearchResult> {
         return this.search("lives", keyword, options).then(r => {
-            const content = r['content']
             return {
-                size: content['size'],
-                nextOffset: content['page']['next']['offset'],
-                lives: content['data'].map((data: Record<string, any>) => {
+                size: r.size,
+                nextOffset: r.nextOffset,
+                lives: r.data.map((data: Record<string, any>) => {
                     const live = data['live']
                     const channel = data['channel']
 
@@ -103,11 +117,10 @@ export class ChzzkSearch {
         options: SearchOptions = DEFAULT_SEARCH_OPTIONS
     ): Promise<ChannelSearchResult> {
         return this.search("channels", keyword, options).then(r => {
-            const content = r['content']
             return {
-                size: content['size'],
-                nextOffset: content['page']['next']['offset'],
-                channels: content['data'].map((data: Record<string, any>) => data['channel'])
+                size: r.size,
+                nextOffset: r.nextOffset,
+                channels: r.data.map((data: Record<string, any>) => data['channel'])
             }
         })
     }
