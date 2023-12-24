@@ -35,7 +35,7 @@ export class ChzzkClient {
     async video(videoNo: string | number): Promise<Video> {
         return this.fetch(`${API_URL}/service/v1/videos/${videoNo}`)
             .then(r => r.json())
-            .then(r => r['content'])
+            .then(r => r['content'] ?? null)
     }
 
     search = new ChzzkSearch(this)
