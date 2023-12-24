@@ -18,6 +18,7 @@ export enum ChatType {
     DONATION = 10,
     SYSTEM_MESSAGE = 30
 }
+
 export interface Events {
     chat: ChatEvent
     donation: DonationEvent
@@ -69,7 +70,16 @@ export interface Profile {
     }
     verifiedMark: boolean
     activityBadges: ActivityBadge[]
-    streamingProperty?: Record<string, string> // unknown
+    streamingProperty: StreamingProperty
+}
+
+export interface StreamingProperty {
+    realTimeDonationRanking?: {
+        badge?: {
+            title: string
+            imageUrl: string
+        }
+    }
 }
 
 export interface ActivityBadge {
