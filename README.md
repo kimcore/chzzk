@@ -36,15 +36,17 @@ const client = new ChzzkClient(options)
 const result = await client.search.channels("녹두로로")
 const channel = result.channels[0]
 
-// 현재 방송 정보 불러오기
+// 설정된 방송 정보, 방송 중이 아닐 경우에도 정보가 존재할 수 있음
 const liveDetail = await client.live.detail(channel.channelId)
 
-const media = liveDetail.livePlayback.media // 방송 중이 아닐 경우 비어있음
-const hls = media.find(media => media.mediaId === "HLS") // HLS, LLHLS
+if (liveDetail) {
+    const media = liveDetail.livePlayback.media // 방송 중이 아닐 경우 비어있음
+    const hls = media.find(media => media.mediaId === "HLS") // HLS, LLHLS
 
-if (hls) {
-    const m3u8 = await client.fetch(hls.path).then(r => r.text())
-    console.log(m3u8)
+    if (hls) {
+        const m3u8 = await client.fetch(hls.path).then(r => r.text())
+        console.log(m3u8)
+    }
 }
 
 // 채팅 인스턴스 생성
