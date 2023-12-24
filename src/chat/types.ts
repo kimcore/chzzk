@@ -5,14 +5,7 @@ export enum ChatCmd {
     CONNECTED = 10100,
     REQUEST_RECENT_CHAT = 5101,
     RECENT_CHAT = 15101,
-    EVENT = 93006,
     CHAT = 93101,
-    DONATION = 93102,
-    KICK = 94005,
-    BLOCK = 94006,
-    BLIND = 94008,
-    NOTICE = 94010,
-    PENALTY = 94015,
     SEND_CHAT = 3101
 }
 
@@ -76,13 +69,7 @@ export interface Profile {
     }
     verifiedMark: boolean
     activityBadges: ActivityBadge[]
-    streamingProperty: StreamingProperty
-}
-
-export interface StreamingProperty {
-    realTimeDonationRanking?: {
-
-    }
+    streamingProperty?: Record<string, string> // unknown
 }
 
 export interface ActivityBadge {
