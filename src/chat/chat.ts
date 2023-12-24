@@ -56,7 +56,13 @@ export class ChzzkChat {
             this.accessToken = json['content']['accessToken']
         }
 
-        this.ws = new WebSocket("wss://kr-ss1.chat.naver.com/chat")
+        const serverId = Math.abs(
+            this.chatChannelId.split("")
+                .map(c => c.charCodeAt(0))
+                .reduce((a, b) => a + b)
+        ) % 9 + 1
+
+        this.ws = new WebSocket(`wss://kr-ss${serverId}.chat.naver.com/chat`)
 
         this.ws.onopen = () => {
             this.ws.send(JSON.stringify({
@@ -153,6 +159,12 @@ export class ChzzkChat {
         }
     }
 
+    on<T extends keyof Events>(event: T, handler: (data: Events[typeof event]) => void) {
+        const e = event as string
+        this.handlers[e] = this.handlers[e] || []
+        this.handlers[e].push(handler)
+    }
+
     private async handleMessage(data: MessageEvent) {
         const json = JSON.parse(data.data as string)
 
@@ -170,13 +182,18 @@ export class ChzzkChat {
                 break
             case ChatCmd.CHAT:
             case ChatCmd.RECENT_CHAT:
-                const chats = json.cmd == ChatCmd.CHAT ? json['bdy'] : json['bdy']['messageList']
+            case ChatCmd.DONATION:
+            case ChatCmd.NOTICE: // not sure
+            case ChatCmd.BLIND: // not sure
+            case ChatCmd.PENALTY: // not sure
+            case ChatCmd.EVENT: // not sure
+                const chats = json['bdy'] || json['bdy']['messageList']
 
                 for (const chat of chats) {
                     const profile = JSON.parse(chat['profile'])
                     const extras = chat['extras'] ? JSON.parse(chat['extras']) : null
 
-                    const message = json.cmd == ChatCmd.CHAT ? chat['msg'] : chat['content']
+                    const message = chat['msg'] || chat['content'] || ''
 
                     const type = chat['msgTypeCode'] || chat['messageTypeCode']
 
@@ -197,7 +214,7 @@ export class ChzzkChat {
                     }
 
                     const memberCount = chat['mbrCnt'] || chat['memberCount']
-                    const time = chat['msgTime'] || chat['createTime']
+                    const time = chat['msgTime'] || chat['messageTime']
 
                     const hidden = (chat['msgStatusType'] || chat['messageStatusType']) == "HIDDEN"
 
@@ -225,11 +242,5 @@ export class ChzzkChat {
 
                 break
         }
-    }
-
-    on<T extends keyof Events>(event: T, handler: (data: Events[typeof event]) => void) {
-        const e = event as string
-        this.handlers[e] = this.handlers[e] || []
-        this.handlers[e].push(handler)
     }
 }
