@@ -131,6 +131,9 @@ export class ChzzkLive {
             .then(r => r.json())
             .then(data => {
                 const content = data['content']
+
+                if (!content) return null
+
                 const livePollingStatusJson = content['livePollingStatusJson']
                 const livePollingStatus = JSON.parse(livePollingStatusJson)
                 delete content['livePollingStatusJson']
@@ -146,6 +149,9 @@ export class ChzzkLive {
             .then(r => r.json())
             .then(data => {
                 const content = data['content']
+
+                if (!content) return null
+
                 const livePollingStatusJson = content['livePollingStatusJson']
                 const livePollingStatus = JSON.parse(livePollingStatusJson)
                 delete content['livePollingStatusJson']

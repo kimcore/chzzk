@@ -20,14 +20,14 @@ export class ChzzkClient {
     async user(): Promise<User> {
         return this.fetch(`${GAME_API_URL}/v1/user/getUserStatus`)
             .then(r => r.json())
-            .then(data => data['content'])
+            .then(data => data['content'] ?? null)
     }
 
     async channel(channelId: string): Promise<Channel> {
         return this.fetch(`${API_URL}/service/v1/channels/${channelId}`)
             .then(r => r.json())
             .then(data => data['content'])
-            .then(content => content.channelId ? content : null)
+            .then(content => content?.channelId ? content : null)
     }
 
     live = new ChzzkLive(this)
