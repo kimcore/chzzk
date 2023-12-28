@@ -182,7 +182,7 @@ export class ChzzkChat {
             case ChatCmd.BLIND: // not sure
             case ChatCmd.PENALTY: // not sure
             case ChatCmd.EVENT: // not sure
-                const chats = json['bdy'] || json['bdy']['messageList']
+                const chats = json['bdy']['messageList'] || json['bdy']
 
                 for (const chat of chats) {
                     const profile = JSON.parse(chat['profile'])
