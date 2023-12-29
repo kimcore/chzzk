@@ -12,7 +12,7 @@ export class ChzzkChat {
     private accessToken?: string
     private sid: string
     private uid?: string
-    private handlers: [string, (data: Event) => void][] = []
+    private handlers: [string, (data: any) => void][] = []
     private readonly defaults = {}
 
     private constructor(
@@ -184,6 +184,11 @@ export class ChzzkChat {
             case ChatCmd.EVENT: // not sure
                 const chats = json['bdy']['messageList'] || json['bdy']
 
+                if (typeof chats[Symbol.iterator] !== 'function') {
+                    console.error(`Chat list is not iterable. (${json.cmd})`)
+                    return
+                }
+
                 for (const chat of chats) {
                     const profile = JSON.parse(chat['profile'])
                     const extras = chat['extras'] ? JSON.parse(chat['extras']) : null
@@ -237,6 +242,8 @@ export class ChzzkChat {
 
                 break
         }
+
+        this.emit('raw', json)
     }
 
     on<T extends keyof Events>(event: T, handler: (data: Events[typeof event]) => void) {

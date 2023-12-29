@@ -79,9 +79,15 @@ chzzkChat.on('donation', donation => {
 })
 
 // 시스템 메시지
+// !!! 현시점에서 제대로 된 테스트가 불가하기에, systemMessage 이벤트는 사용하지 않는 것을 권장합니다 !!!
 chzzkChat.on('systemMessage', systemMessage => {
     console.log(systemMessage.extras.description)
 })
+
+// RAW 이벤트
+// chzzkChat.on('raw', raw => {
+//     console.log(raw)
+// })
 
 // 채팅 연결
 await chzzkChat.connect()

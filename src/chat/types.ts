@@ -32,6 +32,7 @@ export interface Events {
     systemMessage: SystemMessageEvent
     connect: null
     disconnect: null
+    raw: any
 }
 
 interface Event {
