@@ -1,5 +1,7 @@
 # CHZZK
 
+[![npm version](https://img.shields.io/npm/v/chzzk.svg?style=for-the-badge)](https://www.npmjs.org/package/chzzk) [![install size](https://img.shields.io/bundlephobia/min/chzzk?style=for-the-badge)](https://packagephobia.com/result?p=chzzk) [![npm downloads](https://img.shields.io/npm/dm/chzzk.svg?style=for-the-badge)](http://npm-stat.com/charts.html?package=chzzk) [![license](https://img.shields.io/github/license/kimcore/chzzk?style=for-the-badge)](https://github.com/kimcore/chzzk/blob/master/LICENSE)
+
 네이버 라이브 스트리밍 서비스 CHZZK의 비공식 API 라이브러리입니다.
 
 현재 구현된 기능은 다음과 같습니다.
@@ -8,7 +10,7 @@
 - 검색 (채널, 영상, 생방송)
 - 채널 정보 조회
 - 방송 상태 및 상세 정보 조회
-- 채팅
+- 채팅 (일부 이벤트 미지원)
 
 ## 설치
 
@@ -21,7 +23,9 @@ yarn add chzzk
 ```
 
 ## 예시
-`chzzk.naver.com` 에 로그인 하신 후, 개발자 도구를 열어 `Application > Cookies > https://chzzk.naver.com` 에서 `NID_AUT` 과 `NID_SES` 쿠키를 확인하실 수 있습니다.
+
+`chzzk.naver.com` 에 로그인 하신 후, 개발자 도구를 열어 `Application > Cookies > https://chzzk.naver.com` 에서 `NID_AUT` 과 `NID_SES` 쿠키를
+확인하실 수 있습니다.
 
 ```ts
 // 로그인 옵션 (선택사항)
@@ -56,7 +60,7 @@ const chzzkChat = client.chat(chatChannelId)
 chzzkChat.on('connect', () => {
     console.log('Connected')
 
-    // 최근 50개의 채팅을 요청 (선택사항, 도네 및 시스템 메시지 포함이므로 주의)
+    // 최근 50개의 채팅을 요청 (선택사항, 이 요청으로 불러와진 채팅 및 도네이션은 isRecent 값이 true)
     chzzkChat.requestRecentChat(50)
 
     // 채팅 전송 (로그인 시에만 가능)
@@ -84,6 +88,16 @@ chzzkChat.on('systemMessage', systemMessage => {
     console.log(systemMessage.extras.description)
 })
 
+// 채팅 블라인드
+chzzkChat.on('blind', blind => {
+    console.log(blind)
+})
+
+// 고정 메시지
+chzzkChat.on('notice', notice => {
+    console.log(notice)
+})
+
 // RAW 이벤트
 // chzzkChat.on('raw', raw => {
 //     console.log(raw)
@@ -94,12 +108,14 @@ await chzzkChat.connect()
 ```
 
 ## 브라우저 사용
+
 ChzzkChat 은 브라우저 환경에서도 사용이 가능합니다.
 
 `chatChannelId`, `accessToken`, `uid` 값을 제공해야 합니다.
 (해당 값들은 서버 환경에서만 불러올 수 있음)
+
 ```ts
-import { ChzzkChat } from "chzzk"
+import {ChzzkChat} from "chzzk"
 
 // uid 값은 선택사항 (로그인 시에만 사용, ChzzkClient.user() 함수의 userIdHash 값)
 const chzzkChat = ChzzkChat.fromAccessToken(chatChannelId, accessToken, uid)

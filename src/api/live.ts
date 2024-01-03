@@ -1,5 +1,4 @@
 import {PartialChannel} from "./channel"
-import {API_URL} from "../consts"
 import {ChzzkClient} from "../client"
 
 export interface Live {
@@ -127,7 +126,7 @@ export class ChzzkLive {
     }
 
     async status(channelId: string): Promise<LiveStatus> {
-        return this.client.fetch(`${API_URL}/polling/v1/channels/${channelId}/live-status`)
+        return this.client.fetch(`/polling/v1/channels/${channelId}/live-status`)
             .then(r => r.json())
             .then(data => {
                 const content = data['content']
@@ -145,7 +144,7 @@ export class ChzzkLive {
     }
 
     async detail(channelId: string): Promise<ChannelLiveDetail> {
-        return this.client.fetch(`${API_URL}/service/v1/channels/${channelId}/live-detail`)
+        return this.client.fetch(`/service/v1/channels/${channelId}/live-detail`)
             .then(r => r.json())
             .then(data => {
                 const content = data['content']

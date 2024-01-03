@@ -30,30 +30,55 @@ export interface Events {
     chat: ChatEvent
     donation: DonationEvent
     systemMessage: SystemMessageEvent
+    notice: NoticeEvent
+    blind: BlindEvent
     connect: null
     disconnect: null
     raw: any
 }
 
-interface Event {
+interface EventWithProfile {
+    profile: Profile
+}
+
+interface EventWithMessage {
     message: string,
     hidden: boolean,
-    memberCount: number,
     time: number
 }
 
-export interface ChatEvent extends Event {
-    profile: Profile
+interface EventWithMemberCount {
+    memberCount: number
+}
+
+interface EventWithIsRecent {
+    isRecent: boolean
+}
+
+export interface ChatEvent extends EventWithProfile, EventWithMessage, EventWithMemberCount, EventWithIsRecent {
     extras?: ChatExtras
 }
 
-export interface DonationEvent extends Event {
-    profile: Profile
+export interface DonationEvent extends EventWithProfile, EventWithMessage, EventWithMemberCount, EventWithIsRecent {
     extras: DonationExtras
 }
 
-export interface SystemMessageEvent extends Event {
+export interface SystemMessageEvent extends EventWithMessage, EventWithMemberCount, EventWithIsRecent {
     extras: SystemMessageExtras
+}
+
+export interface NoticeEvent extends EventWithProfile, EventWithMessage, EventWithIsRecent {
+    extras: NoticeExtras
+}
+
+export interface BlindEvent {
+    messageTime: number
+    blindType: string
+    blindUserId?: string
+    serviceId: string
+    message?: string
+    userId: string
+    channelId: string
 }
 
 export interface DonationRank {
@@ -127,4 +152,8 @@ export interface SystemMessageExtras {
         registerChatProfile: Profile
         targetProfile: Profile
     }
+}
+
+export interface NoticeExtras extends ChatExtras {
+    registerProfile: Profile
 }

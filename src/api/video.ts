@@ -1,6 +1,4 @@
-import {API_URL} from "../consts"
 import {PartialChannel} from "./channel"
-import {ChzzkClient} from "../client"
 
 export interface BaseVideo {
     videoNo: number

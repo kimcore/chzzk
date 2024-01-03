@@ -1,4 +1,3 @@
-import {API_URL, GAME_API_URL} from "../consts"
 import {Channel} from "./channel"
 import {SearchResultVideo} from "./video"
 import {Live} from "./live"
@@ -40,28 +39,6 @@ export class ChzzkSearch {
 
     constructor(client: ChzzkClient) {
         this.client = client
-    }
-
-    private async search(type: string, keyword: string, options: SearchOptions = DEFAULT_SEARCH_OPTIONS): Promise<SearchResultWithData> {
-        const params = new URLSearchParams({
-            keyword,
-            size: options.size.toString(),
-            offset: options.offset.toString()
-        }).toString()
-
-        return this.client.fetch(`${API_URL}/service/v1/search/${type}?${params}`)
-            .then(r => r.json())
-            .then(data => {
-                const content = data['content']
-
-                if (!content) return null
-
-                return {
-                    size: content['size'],
-                    nextOffset: content['page']?.['next']?.['offset'] ?? 0,
-                    data: content['data']
-                }
-            })
     }
 
     async videos(
@@ -135,8 +112,30 @@ export class ChzzkSearch {
             offset: options.offset.toString()
         }).toString()
 
-        return this.client.fetch(`${GAME_API_URL}/v2/search/lounges/auto-complete?${params}`)
+        return this.client.fetch(`${this.client.options.baseUrls.gameBaseUrl}/v2/search/lounges/auto-complete?${params}`)
             .then(r => r.json())
             .then(data => data['content']['data'])
+    }
+
+    private async search(type: string, keyword: string, options: SearchOptions = DEFAULT_SEARCH_OPTIONS): Promise<SearchResultWithData> {
+        const params = new URLSearchParams({
+            keyword,
+            size: options.size.toString(),
+            offset: options.offset.toString()
+        }).toString()
+
+        return this.client.fetch(`/service/v1/search/${type}?${params}`)
+            .then(r => r.json())
+            .then(data => {
+                const content = data['content']
+
+                if (!content) return null
+
+                return {
+                    size: content['size'],
+                    nextOffset: content['page']?.['next']?.['offset'] ?? 0,
+                    data: content['data']
+                }
+            })
     }
 }

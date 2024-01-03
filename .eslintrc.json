@@ -1,5 +1,8 @@
 {
-  "rules": {
-    "semi": [2, "never"]
-  }
+    "rules": {
+        "semi": [
+            2,
+            "never"
+        ]
+    }
 }

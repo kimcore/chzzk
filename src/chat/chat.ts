@@ -1,12 +1,13 @@
 import WebSocket, {MessageEvent} from "isomorphic-ws"
 import {ChatCmd, ChatType, Events} from "./types"
-import {GAME_API_URL} from "../consts"
 import {ChzzkClient} from "../client"
+import {ChzzkAPIBaseUrls} from "../types"
 
 export class ChzzkChat {
     connected: boolean = false
 
     private readonly client: ChzzkClient
+    private readonly baseUrls: ChzzkAPIBaseUrls
     private ws: WebSocket
     private readonly chatChannelId: string
     private accessToken?: string
@@ -14,14 +15,17 @@ export class ChzzkChat {
     private uid?: string
     private handlers: [string, (data: any) => void][] = []
     private readonly defaults = {}
+    private pingTimeout = null
 
     private constructor(
         chatChannelId: string,
         client: ChzzkClient = null,
         accessToken: string = null,
-        uid: string = null
+        uid: string = null,
+        baseUrls: ChzzkAPIBaseUrls = null
     ) {
         this.client = client
+        this.baseUrls = baseUrls
         this.chatChannelId = chatChannelId
         this.defaults = {
             cid: chatChannelId,
@@ -33,11 +37,11 @@ export class ChzzkChat {
     }
 
     static fromClient(chatChannelId: string, client: ChzzkClient) {
-        return new ChzzkChat(chatChannelId, client)
+        return new ChzzkChat(chatChannelId, client, null, null, client.options.baseUrls)
     }
 
-    static fromAccessToken(chatChannelId: string, accessToken: string, uid?: string) {
-        return new ChzzkChat(chatChannelId, null, accessToken, uid)
+    static fromAccessToken(chatChannelId: string, accessToken: string, uid?: string, baseUrls?: ChzzkAPIBaseUrls) {
+        return new ChzzkChat(chatChannelId, null, accessToken, uid, baseUrls)
     }
 
     async connect() {
@@ -46,7 +50,7 @@ export class ChzzkChat {
         }
 
         if (this.client) {
-            const url = `${GAME_API_URL}/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
+            const url = `${this.client.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
             const json = await this.client.fetch(url).then(r => r.json())
 
             this.uid = this.client.hasAuth ?
@@ -61,7 +65,6 @@ export class ChzzkChat {
                 .map(c => c.charCodeAt(0))
                 .reduce((a, b) => a + b)
         ) % 9 + 1
-
 
         this.ws = new WebSocket(`wss://kr-ss${serverId}.chat.naver.com/chat`)
 
@@ -83,6 +86,8 @@ export class ChzzkChat {
 
         this.ws.onclose = () => {
             this.emit('disconnect', null)
+
+            this.stopPingTimer()
 
             this.ws = null
             this.disconnect()
@@ -160,95 +165,124 @@ export class ChzzkChat {
         }
     }
 
+    on<T extends keyof Events>(event: T, handler: (data: Events[typeof event]) => void) {
+        const e = event as string
+        this.handlers[e] = this.handlers[e] || []
+        this.handlers[e].push(handler)
+    }
+
     private async handleMessage(data: MessageEvent) {
         const json = JSON.parse(data.data as string)
+        const body = json['bdy']
 
         switch (json.cmd) {
             case ChatCmd.CONNECTED:
                 this.connected = true
-                this.sid = json['bdy']['sid']
+                this.sid = body['sid']
                 this.emit('connect', null)
                 break
+
             case ChatCmd.PING:
                 this.ws.send(JSON.stringify({
                     cmd: ChatCmd.PONG,
                     ver: "2"
                 }))
                 break
+
             case ChatCmd.CHAT:
             case ChatCmd.RECENT_CHAT:
             case ChatCmd.DONATION:
-            case ChatCmd.NOTICE: // not sure
-            case ChatCmd.BLIND: // not sure
-            case ChatCmd.PENALTY: // not sure
-            case ChatCmd.EVENT: // not sure
-                const chats = json['bdy']['messageList'] || json['bdy']
+                const isRecent = json.cmd == ChatCmd.RECENT_CHAT
+                const chats = body['messageList'] || body
+                const notice = body['notice']
 
-                if (typeof chats[Symbol.iterator] !== 'function') {
-                    console.error(`Chat list is not iterable. (${json.cmd})`)
-                    return
+                if (notice) {
+                    this.emit('notice', this.parseChat(notice, isRecent))
                 }
 
                 for (const chat of chats) {
-                    const profile = JSON.parse(chat['profile'])
-                    const extras = chat['extras'] ? JSON.parse(chat['extras']) : null
-
-                    const message = chat['msg'] || chat['content']
-
                     const type = chat['msgTypeCode'] || chat['messageTypeCode'] || ''
-
-                    if (type == ChatType.SYSTEM_MESSAGE) {
-                        const registerChatProfileJson = extras.params?.['registerChatProfileJson']
-
-                        if (registerChatProfileJson) {
-                            extras.params['registerChatProfile'] = JSON.parse(registerChatProfileJson)
-                            delete extras.params['registerChatProfileJson']
-                        }
-
-                        const targetChatProfileJson = extras.params?.['targetChatProfileJson']
-
-                        if (targetChatProfileJson) {
-                            extras.params['targetChatProfile'] = JSON.parse(targetChatProfileJson)
-                            delete extras.params['targetChatProfileJson']
-                        }
-                    }
-
-                    const memberCount = chat['mbrCnt'] || chat['memberCount']
-                    const time = chat['msgTime'] || chat['messageTime']
-
-                    const hidden = (chat['msgStatusType'] || chat['messageStatusType']) == "HIDDEN"
-
-                    const payload = {
-                        profile,
-                        extras,
-                        hidden,
-                        message,
-                        memberCount,
-                        time
-                    }
+                    const parsed = this.parseChat(chat, isRecent)
 
                     switch (type) {
                         case ChatType.TEXT:
-                            this.emit('chat', payload)
+                            this.emit('chat', parsed)
                             break
                         case ChatType.DONATION:
-                            this.emit('donation', payload)
+                            this.emit('donation', parsed)
                             break
                         case ChatType.SYSTEM_MESSAGE:
-                            this.emit('systemMessage', payload)
+                            this.emit('systemMessage', parsed)
                             break
                     }
                 }
 
                 break
+
+            case ChatCmd.NOTICE:
+                this.emit('notice', this.parseChat(body))
+                break
+
+            case ChatCmd.BLIND:
+                this.emit('blind', body)
+
+            // case ChatCmd.PENALTY:
+            // case ChatCmd.EVENT:
         }
 
         this.emit('raw', json)
+
+        if (json.cmd != ChatCmd.PONG) {
+            this.startPingTimer()
+        }
     }
 
-    on<T extends keyof Events>(event: T, handler: (data: Events[typeof event]) => void) {
-        const e = event as string
-        this.handlers[e] = this.handlers[e] || []
-        this.handlers[e].push(handler)
+    private parseChat(chat: any, isRecent: boolean = false) {
+        const profile = JSON.parse(chat['profile'])
+        const extras = chat['extras'] ? JSON.parse(chat['extras']) : null
+
+        const message = chat['msg'] || chat['content']
+        const memberCount = chat['mbrCnt'] || chat['memberCount']
+        const time = chat['msgTime'] || chat['messageTime']
+
+        const hidden = (chat['msgStatusType'] || chat['messageStatusType']) == "HIDDEN"
+
+        const parsed = {
+            profile,
+            extras,
+            hidden,
+            message,
+            time,
+            isRecent
+        }
+
+        if (memberCount) {
+            parsed['memberCount'] = memberCount
+        }
+
+        return parsed
+    }
+
+    private startPingTimer() {
+        if (this.pingTimeout) {
+            clearTimeout(this.pingTimeout)
+        }
+
+        this.pingTimeout = setTimeout(() => this.sendPing(), 20000)
+    }
+
+    private stopPingTimer() {
+        if (this.pingTimeout) {
+            clearTimeout(this.pingTimeout)
+        }
+    }
+
+    private sendPing() {
+        this.ws.send(JSON.stringify({
+            cmd: ChatCmd.PING,
+            ver: "2"
+        }))
+
+        this.pingTimeout = setTimeout(() => this.sendPing(), 20000)
     }
 }
