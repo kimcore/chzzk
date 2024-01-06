@@ -4,17 +4,18 @@ import {ChzzkClient} from "../client"
 export interface Live {
     liveTitle: string
     liveImageUrl: string
-    defaultThumbnailImageUrl: string
+    defaultThumbnailImageUrl?: string
     concurrentUserCount: number
     accumulateCount: number
     openDate: string
     liveId: number
+    adult: boolean
     chatChannelId: string
-    categoryType?: string
-    liveCategory?: string
+    categoryType: string
+    liveCategory: string
     liveCategoryValue: string
     channelId: string
-    livePlayback: LivePlayback,
+    livePlayback: LivePlayback
     channel: PartialChannel
 }
 
@@ -85,18 +86,18 @@ export interface AudioEncodingTrack extends EncodingTrack {
 }
 
 export interface LiveStatus {
+    liveTitle: string
+    status: "OPEN" | "CLOSE"
+    concurrentUserCount: number
     accumulateCount: number
     adult: boolean
-    categoryType: string
     chatChannelId: string
-    concurrentUserCount: number
-    faultStatus?: string // unknown
+    categoryType: string
     liveCategory: string
     liveCategoryValue: string
     livePollingStatus: LivePollingStatus
-    liveTitle: string
-    paidPromotion: boolean
-    status: string
+    faultStatus?: string // unknown
+    userAdultStatus: string
 }
 
 export interface LivePollingStatus {
@@ -107,8 +108,8 @@ export interface LivePollingStatus {
     callPeriodMilliSecond: number
 }
 
-export interface ChannelLiveDetail extends Live {
-    status: string
+export interface LiveDetail extends Live {
+    status: "OPEN" | "CLOSE"
     closeDate?: string
     chatActive: boolean
     chatAvailableGroup: string
@@ -135,7 +136,9 @@ export class ChzzkLive {
 
                 const livePollingStatusJson = content['livePollingStatusJson']
                 const livePollingStatus = JSON.parse(livePollingStatusJson)
+
                 delete content['livePollingStatusJson']
+
                 return {
                     ...content,
                     livePollingStatus
@@ -143,7 +146,7 @@ export class ChzzkLive {
             })
     }
 
-    async detail(channelId: string): Promise<ChannelLiveDetail> {
+    async detail(channelId: string): Promise<LiveDetail> {
         return this.client.fetch(`/service/v2/channels/${channelId}/live-detail`)
             .then(r => r.json())
             .then(data => {
@@ -153,6 +156,7 @@ export class ChzzkLive {
 
                 const livePollingStatusJson = content['livePollingStatusJson']
                 const livePollingStatus = JSON.parse(livePollingStatusJson)
+
                 delete content['livePollingStatusJson']
 
                 const livePlaybackJson = content['livePlaybackJson']
@@ -160,10 +164,20 @@ export class ChzzkLive {
 
                 delete content['livePlaybackJson']
 
+                const channel = content['channel']
+                const channelLivePollingStatusJson = channel['livePollingStatusJson']
+                const channelLivePollingStatus = JSON.parse(channelLivePollingStatusJson)
+
+                delete channel['livePollingStatusJson']
+
                 return {
                     ...content,
                     livePollingStatus,
-                    livePlayback
+                    livePlayback,
+                    channel: {
+                        ...channel,
+                        livePollingStatus: channelLivePollingStatus
+                    }
                 }
             })
     }

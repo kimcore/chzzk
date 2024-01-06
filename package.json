@@ -24,7 +24,7 @@
     },
     "license": "MIT",
     "description": "네이버 라이브 스트리밍 서비스 CHZZK의 비공식 API 라이브러리",
-    "version": "1.1.1",
+    "version": "1.1.2",
     "dependencies": {
         "isomorphic-ws": "^5.0.0",
         "ws": "^8.15.1"

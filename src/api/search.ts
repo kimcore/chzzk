@@ -1,7 +1,7 @@
 import {Channel} from "./channel"
 import {SearchResultVideo} from "./video"
-import {Live} from "./live"
 import {ChzzkClient} from "../client"
+import {Live} from "./live"
 
 export interface SearchOptions {
     size: number
