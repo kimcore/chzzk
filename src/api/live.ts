@@ -11,9 +11,9 @@ export interface Live {
     liveId: number
     adult: boolean
     chatChannelId: string
-    categoryType: string
-    liveCategory: string
-    liveCategoryValue: string
+    categoryType?: string
+    liveCategory?: string
+    liveCategoryValue?: string
     channelId: string
     livePlayback: LivePlayback
     channel: PartialChannel
@@ -93,11 +93,11 @@ export interface LiveStatus {
     adult: boolean
     chatChannelId: string
     categoryType: string
-    liveCategory: string
-    liveCategoryValue: string
+    liveCategory?: string
+    liveCategoryValue?: string
     livePollingStatus: LivePollingStatus
     faultStatus?: string // unknown
-    userAdultStatus: string
+    userAdultStatus?: string
 }
 
 export interface LivePollingStatus {
@@ -117,6 +117,7 @@ export interface LiveDetail extends Live {
     chatAvailableCondition: string
     minFollowerMinute: number
     livePollingStatus: LivePollingStatus
+    userAdultStatus?: string
 }
 
 export class ChzzkLive {
@@ -164,20 +165,10 @@ export class ChzzkLive {
 
                 delete content['livePlaybackJson']
 
-                const channel = content['channel']
-                const channelLivePollingStatusJson = channel['livePollingStatusJson']
-                const channelLivePollingStatus = JSON.parse(channelLivePollingStatusJson)
-
-                delete channel['livePollingStatusJson']
-
                 return {
                     ...content,
                     livePollingStatus,
-                    livePlayback,
-                    channel: {
-                        ...channel,
-                        livePollingStatus: channelLivePollingStatus
-                    }
+                    livePlayback
                 }
             })
     }
