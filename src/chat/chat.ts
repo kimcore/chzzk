@@ -1,67 +1,105 @@
 import WebSocket, {MessageEvent} from "isomorphic-ws"
-import {ChatCmd, ChatType, Events} from "./types"
+import {ChatCmd, ChatType, ChzzkChatOptions, ChzzkChatOptionsWithClient, Events} from "./types"
 import {ChzzkClient} from "../client"
 import {ChzzkAPIBaseUrls} from "../types"
+import {DEFAULT_BASE_URLS, IS_BROWSER} from "../const"
 
 export class ChzzkChat {
-    connected: boolean = false
+    private _connected: boolean = false
 
     private readonly client: ChzzkClient
-    private readonly baseUrls: ChzzkAPIBaseUrls
     private ws: WebSocket
-    private readonly chatChannelId: string
-    private accessToken?: string
-    private sid: string
+    private options: ChzzkChatOptions
     private uid?: string
+    private sid?: string
     private handlers: [string, (data: any) => void][] = []
-    private readonly defaults = {}
-    private pingTimeout = null
+    private defaults = {}
+    private pingTimeoutId = null
+    private pollIntervalId = null
+    private isReconnect = false
 
-    private constructor(
-        chatChannelId: string,
-        client: ChzzkClient = null,
-        accessToken: string = null,
-        uid: string = null,
-        baseUrls: ChzzkAPIBaseUrls = null
-    ) {
-        this.client = client
-        this.baseUrls = baseUrls
-        this.chatChannelId = chatChannelId
-        this.defaults = {
-            cid: chatChannelId,
-            svcid: "game",
-            ver: "2"
+    constructor(options: ChzzkChatOptionsWithClient) {
+        if (options.pollInterval && !options.channelId) {
+            throw new Error('channelId is required for polling')
         }
-        this.accessToken = accessToken
-        this.uid = uid
+
+        if (!options.chatChannelId && !options.channelId) {
+            throw new Error('channelId or chatChannelId is required')
+        }
+
+        if (IS_BROWSER && options.baseUrls == DEFAULT_BASE_URLS) {
+            if (options.pollInterval) {
+                throw new Error('Custom baseUrls are required for polling in browser')
+            }
+
+            if (!options.chatChannelId) {
+                throw new Error('chatChannelId is required in browser if not using custom baseUrls')
+            }
+
+            if (!options.accessToken) {
+                throw new Error('accessToken is required in browser if not using custom baseUrls')
+            }
+        }
+
+        this.options = options
+        this.options.baseUrls = options.baseUrls ?? DEFAULT_BASE_URLS
+        this.client = options.client ?? new ChzzkClient({baseUrls: options.baseUrls})
     }
 
     static fromClient(chatChannelId: string, client: ChzzkClient) {
-        return new ChzzkChat(chatChannelId, client, null, null, client.options.baseUrls)
+        return new ChzzkChat({
+            chatChannelId,
+            client,
+            baseUrls: client.options.baseUrls
+        })
     }
 
     static fromAccessToken(chatChannelId: string, accessToken: string, uid?: string, baseUrls?: ChzzkAPIBaseUrls) {
-        return new ChzzkChat(chatChannelId, null, accessToken, uid, baseUrls)
+        const chzzkChat = new ChzzkChat({
+            chatChannelId,
+            accessToken,
+            baseUrls
+        })
+
+        chzzkChat.uid = uid
+
+        return chzzkChat
+    }
+
+    get connected() {
+        return this._connected
     }
 
     async connect() {
-        if (this.connected) {
+        if (this._connected) {
             throw new Error('Already connected')
         }
 
-        if (this.client) {
-            const url = `${this.client.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${this.chatChannelId}&chatType=STREAMING`
+        if (this.options.channelId && !this.options.chatChannelId) {
+            const status = await this.client.live.status(this.options.channelId)
+
+            this.options.chatChannelId = status.chatChannelId
+        }
+
+        if (this.options.chatChannelId && !this.options.accessToken) {
+            const url = `${this.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${this.options.chatChannelId}&chatType=STREAMING`
             const json = await this.client.fetch(url).then(r => r.json())
 
             this.uid = this.client.hasAuth ?
                 await this.client.user().then(user => user.userIdHash) :
                 null
 
-            this.accessToken = json['content']['accessToken']
+            this.options.accessToken = json['content']['accessToken']
+        }
+
+        this.defaults = {
+            cid: this.options.chatChannelId,
+            svcid: "game",
+            ver: "2"
         }
 
         const serverId = Math.abs(
-            this.chatChannelId.split("")
+            this.options.chatChannelId.split("")
                 .map(c => c.charCodeAt(0))
                 .reduce((a, b) => a + b)
         ) % 9 + 1
@@ -71,7 +109,7 @@ export class ChzzkChat {
         this.ws.onopen = () => {
             this.ws.send(JSON.stringify({
                 bdy: {
-                    accTkn: this.accessToken,
+                    accTkn: this.options.accessToken,
                     auth: this.uid ? "SEND" : "READ",
                     devType: 2001,
                     uid: this.uid
@@ -80,22 +118,33 @@ export class ChzzkChat {
                 tid: 1,
                 ...this.defaults
             }))
+
+            if (!this.isReconnect) {
+                this.startPolling()
+            }
         }
 
         this.ws.onmessage = this.handleMessage.bind(this)
 
         this.ws.onclose = () => {
-            this.emit('disconnect', null)
+            if (!this.isReconnect) {
+                this.emit('disconnect', this.options.chatChannelId)
+                this.stopPolling()
+                this.options.chatChannelId = null
+            }
 
             this.stopPingTimer()
 
             this.ws = null
-            this.disconnect()
+
+            if (this._connected) {
+                this.disconnect()
+            }
         }
     }
 
     async disconnect() {
-        if (!this.connected) {
+        if (!this._connected) {
             throw new Error('Not connected')
         }
 
@@ -105,15 +154,15 @@ export class ChzzkChat {
         this.sid = null
 
         if (this.client) {
-            this.accessToken = null
+            this.options.accessToken = null
             this.uid = null
         }
 
-        this.connected = false
+        this._connected = false
     }
 
     requestRecentChat(count: number = 50) {
-        if (!this.connected) {
+        if (!this._connected) {
             throw new Error('Not connected')
         }
 
@@ -127,7 +176,7 @@ export class ChzzkChat {
     }
 
     sendChat(message: string) {
-        if (!this.connected) {
+        if (!this._connected) {
             throw new Error('Not connected')
         }
 
@@ -139,7 +188,7 @@ export class ChzzkChat {
             chatType: "STREAMING",
             emojis: "",
             osType: "PC",
-            streamingChannelId: this.chatChannelId
+            streamingChannelId: this.options.chatChannelId
         }
 
         this.ws.send(JSON.stringify({
@@ -177,9 +226,14 @@ export class ChzzkChat {
 
         switch (json.cmd) {
             case ChatCmd.CONNECTED:
-                this.connected = true
+                this._connected = true
                 this.sid = body['sid']
-                this.emit('connect', null)
+                if (this.isReconnect) {
+                    this.emit('reconnect', this.options.chatChannelId)
+                    this.isReconnect = false
+                } else {
+                    this.emit('connect', null)
+                }
                 break
 
             case ChatCmd.PING:
@@ -263,18 +317,44 @@ export class ChzzkChat {
         return parsed
     }
 
-    private startPingTimer() {
-        if (this.pingTimeout) {
-            clearTimeout(this.pingTimeout)
+    private startPolling() {
+        if (!this.options.pollInterval || this.pollIntervalId) return
+
+        this.pollIntervalId = setInterval(async () => {
+            const status = await this.client.live.status(this.options.channelId)
+
+            if (status.chatChannelId != this.options.chatChannelId) {
+                this.options.chatChannelId = status.chatChannelId
+                this.isReconnect = true
+
+                await this.disconnect()
+                await this.connect()
+            }
+        }, this.options.pollInterval)
+    }
+
+    private stopPolling() {
+        if (this.pollIntervalId) {
+            clearInterval(this.pollIntervalId)
         }
 
-        this.pingTimeout = setTimeout(() => this.sendPing(), 20000)
+        this.pollIntervalId = null
+    }
+
+    private startPingTimer() {
+        if (this.pingTimeoutId) {
+            clearTimeout(this.pingTimeoutId)
+        }
+
+        this.pingTimeoutId = setTimeout(() => this.sendPing(), 20000)
     }
 
     private stopPingTimer() {
-        if (this.pingTimeout) {
-            clearTimeout(this.pingTimeout)
+        if (this.pingTimeoutId) {
+            clearTimeout(this.pingTimeoutId)
         }
+
+        this.pingTimeoutId = null
     }
 
     private sendPing() {
@@ -283,6 +363,6 @@ export class ChzzkChat {
             ver: "2"
         }))
 
-        this.pingTimeout = setTimeout(() => this.sendPing(), 20000)
+        this.pingTimeoutId = setTimeout(() => this.sendPing(), 20000)
     }
 }

@@ -1,3 +1,18 @@
+import {ChzzkAPIBaseUrls} from "../types"
+import {ChzzkClient} from "../client"
+
+export interface ChzzkChatOptions {
+    chatChannelId?: string
+    accessToken?: string
+    channelId?: string
+    pollInterval?: number
+    baseUrls?: ChzzkAPIBaseUrls
+}
+
+export interface ChzzkChatOptionsWithClient extends ChzzkChatOptions {
+    client?: ChzzkClient
+}
+
 export enum ChatCmd {
     PING = 0,
     PONG = 10000,
@@ -32,8 +47,9 @@ export interface Events {
     systemMessage: SystemMessageEvent
     notice: NoticeEvent
     blind: BlindEvent
-    connect: null
-    disconnect: null
+    connect: string
+    disconnect: string
+    reconnect: string
     raw: any
 }
 

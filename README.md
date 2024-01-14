@@ -54,17 +54,24 @@ if (liveDetail) {
 }
 
 // 채팅 인스턴스 생성
-const chatChannelId = liveDetail.chatChannelId // 고유한 6자리 ID, channelId와는 별개
-const chzzkChat = client.chat(chatChannelId)
+const chzzkChat = client.chat({
+    channelId: channel.channelId,
+    pollInterval: 30 * 1000 // channelId를 지정할 경우 자동으로 30초로 설정됨
+})
 
-chzzkChat.on('connect', () => {
-    console.log('Connected')
+chzzkChat.on('connect', chatChannelId => {
+    console.log(`Connected to ${chatChannelId}`)
 
     // 최근 50개의 채팅을 요청 (선택사항, 이 요청으로 불러와진 채팅 및 도네이션은 isRecent 값이 true)
     chzzkChat.requestRecentChat(50)
 
     // 채팅 전송 (로그인 시에만 가능)
     chzzkChat.sendChat('안녕하세요')
+})
+
+// 재연결 (방송 시작 시)
+chzzkChat.on('reconnect', chatChannelId => {
+    console.log(`Reconnected to ${chatChannelId}`)
 })
 
 // 일반 채팅

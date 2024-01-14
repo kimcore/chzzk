@@ -1,7 +1,8 @@
-import {ChzzkChat} from "./chat"
+import {ChzzkChat, ChzzkChatOptions} from "./chat"
 import {Channel, ChzzkLive, ChzzkSearch, Video} from "./api"
-import {ChzzkClientOptions, DEFAULT_BASE_URLS} from "./types"
+import {ChzzkClientOptions} from "./types"
 import {User} from "./api/user"
+import {DEFAULT_BASE_URLS} from "./const"
 
 export class ChzzkClient {
     readonly options: ChzzkClientOptions
@@ -37,12 +38,21 @@ export class ChzzkClient {
             .then(r => r['content'] ?? null)
     }
 
-    chat(chatChannelId: string): ChzzkChat {
-        if (!chatChannelId || chatChannelId.length > 6) {
-            throw new Error("Invalid chat channel ID")
+    chat(options: string | ChzzkChatOptions): ChzzkChat {
+        if (typeof options == "string") {
+            if (options.length != 6) {
+                throw new Error("Invalid chat channel ID")
+            }
+
+            return ChzzkChat.fromClient(options, this)
         }
 
-        return ChzzkChat.fromClient(chatChannelId, this)
+        return new ChzzkChat({
+            client: this,
+            baseUrls: this.options.baseUrls,
+            pollInterval: 30 * 1000,
+            ...options
+        })
     }
 
     fetch(pathOrUrl: string, options?: RequestInit): Promise<Response> {
