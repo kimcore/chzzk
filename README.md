@@ -118,12 +118,31 @@ await chzzkChat.connect()
 
 ChzzkChat 은 브라우저 환경에서도 사용이 가능합니다.
 
-`chatChannelId`, `accessToken`, `uid` 값을 제공해야 합니다.
-(해당 값들은 서버 환경에서만 불러올 수 있음)
-
 ```ts
+// Webpack 등의 모듈 번들러를 통해 사용할 경우
 import {ChzzkChat} from "chzzk"
 
-// uid 값은 선택사항 (로그인 시에만 사용, ChzzkClient.user() 함수의 userIdHash 값)
-const chzzkChat = ChzzkChat.fromAccessToken(chatChannelId, accessToken, uid)
+// script 태그에서 사용할 경우
+import {ChzzkChat} from "https://cdn.skypack.dev/chzzk"
+```
+```ts
+// chatChannelId, accessToken 값을 제공해야 합니다. (해당 값들은 서버 환경에서만 불러올 수 있음)
+const client = new ChzzkChat({
+    chatChannelId,
+    accessToken
+})
+```
+## CORS 우회 방법
+
+`baseUrls` 옵션을 설정하여 ChzzkClient가 요청을 보내는 API 주소를 변경할 수 있습니다.
+
+해당 옵션을 설정할 경우 브라우저 (클라이언트) 에서도 ChzzkClient의 사용이 가능합니다.
+
+```ts
+const client = new ChzzkClient({
+    baseUrls: {
+        chzzkBaseUrl: "https://api.chzzk.naver.com",
+        gameBaseUrl: "https://comm-api.game.naver.com/nng_main"
+    }
+})
 ```
