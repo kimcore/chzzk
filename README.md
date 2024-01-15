@@ -56,7 +56,9 @@ if (liveDetail) {
 // 채팅 인스턴스 생성
 const chzzkChat = client.chat({
     channelId: channel.channelId,
-    pollInterval: 30 * 1000 // channelId를 지정할 경우 자동으로 30초로 설정됨
+    // chatChannelId 의 변경을 감지하기 위한 polling 요청의 주기 (선택사항, ms 단위)
+    // channelId를 지정할 경우 자동으로 30초로 설정됨, 0초로 설정 시 polling 요청을 하지 않음
+    pollInterval: 30 * 1000
 })
 
 chzzkChat.on('connect', chatChannelId => {
