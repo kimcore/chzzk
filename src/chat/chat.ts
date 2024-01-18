@@ -70,6 +70,10 @@ export class ChzzkChat {
         return this._connected
     }
 
+    get chatChannelId() {
+        return this.options.chatChannelId
+    }
+
     async connect() {
         if (this._connected) {
             throw new Error('Already connected')
@@ -82,14 +86,12 @@ export class ChzzkChat {
         }
 
         if (this.options.chatChannelId && !this.options.accessToken) {
-            const url = `${this.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${this.options.chatChannelId}&chatType=STREAMING`
-            const json = await this.client.fetch(url).then(r => r.json())
-
             this.uid = this.client.hasAuth ?
                 await this.client.user().then(user => user.userIdHash) :
                 null
 
-            this.options.accessToken = json['content']['accessToken']
+            this.options.accessToken = await this.client.chat.accessToken(this.options.chatChannelId)
+                .then(token => token.accessToken)
         }
 
         this.defaults = {

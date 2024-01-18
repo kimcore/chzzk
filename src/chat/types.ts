@@ -128,6 +128,9 @@ export interface StreamingProperty {
             title: string
             imageUrl: string
         }
+    },
+    following?: {
+        followDate: string
     }
 }
 
@@ -172,4 +175,16 @@ export interface SystemMessageExtras {
 
 export interface NoticeExtras extends ChatExtras {
     registerProfile: Profile
+}
+
+export interface ChatAccessToken {
+    accessToken: string
+    extraToken: string
+    realNameAuth: boolean
+    temporaryRestrict: {
+        createdTime?: number
+        duration?: number
+        temporaryRestrict: boolean
+        times: number
+    }
 }

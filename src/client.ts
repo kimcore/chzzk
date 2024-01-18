@@ -1,6 +1,6 @@
 import {ChzzkChat, ChzzkChatOptions} from "./chat"
 import {Channel, ChzzkLive, ChzzkSearch, Video} from "./api"
-import {ChzzkClientOptions} from "./types"
+import {ChzzkChatFunc, ChzzkClientOptions} from "./types"
 import {User} from "./api/user"
 import {DEFAULT_BASE_URLS} from "./const"
 
@@ -38,21 +38,37 @@ export class ChzzkClient {
             .then(r => r['content'] ?? null)
     }
 
-    chat(options: string | ChzzkChatOptions): ChzzkChat {
-        if (typeof options == "string") {
-            if (options.length != 6) {
-                throw new Error("Invalid chat channel ID")
+    get chat(): ChzzkChatFunc {
+        const func = (options: string | ChzzkChatOptions) => {
+            if (typeof options == "string") {
+                if (options.length != 6) {
+                    throw new Error("Invalid chat channel ID")
+                }
+
+                return ChzzkChat.fromClient(options, this)
             }
 
-            return ChzzkChat.fromClient(options, this)
+            return new ChzzkChat({
+                client: this,
+                baseUrls: this.options.baseUrls,
+                pollInterval: 30 * 1000,
+                ...options
+            })
         }
 
-        return new ChzzkChat({
-            client: this,
-            baseUrls: this.options.baseUrls,
-            pollInterval: 30 * 1000,
-            ...options
-        })
+        func.accessToken = async (chatChannelId: string) => {
+            const r = await this.fetch(`${this.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${chatChannelId}&chatType=STREAMING`)
+            const data = await r.json()
+            return data['content'] ?? null
+        }
+
+        func.profileCard = async (chatChannelId: string, userIdHash: string) => {
+            const r = await this.fetch(`${this.options.baseUrls.gameBaseUrl}/v1/chats/${chatChannelId}/users/${userIdHash}/profile-card?chatType=STREAMING`)
+            const data = await r.json()
+            return data['content'] ?? null
+        }
+
+        return func
     }
 
     fetch(pathOrUrl: string, options?: RequestInit): Promise<Response> {
