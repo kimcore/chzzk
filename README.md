@@ -83,7 +83,8 @@ chzzkChat.on('chat', chat => {
 
     // 유저의 팔로우 일시 불러오기
     // client.chat.profileCard(chzzkChat.chatChannelId, chat.profile.userIdHash).then(profile => {
-    //     console.log(profile.following ? `${profile.following.followDate} 에 팔로우 함` : "팔로우 안함")
+    //     const following = profile.streamingProperty.following
+    //     console.log(following ? `${following.followDate} 에 팔로우 함` : "팔로우 안함")
     // })
 })
 
