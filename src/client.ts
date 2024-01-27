@@ -6,7 +6,6 @@ import {DEFAULT_BASE_URLS} from "./const"
 
 export class ChzzkClient {
     readonly options: ChzzkClientOptions
-    readonly hasAuth: boolean
     live = new ChzzkLive(this)
     search = new ChzzkSearch(this)
 
@@ -16,26 +15,10 @@ export class ChzzkClient {
         }
 
         this.options = options
-        this.hasAuth = !!(this.options.nidAuth && this.options.nidSession)
     }
 
-    async user(): Promise<User> {
-        return this.fetch(`${this.options.baseUrls.gameBaseUrl}/v1/user/getUserStatus`)
-            .then(r => r.json())
-            .then(data => data['content'] ?? null)
-    }
-
-    async channel(channelId: string): Promise<Channel> {
-        return this.fetch(`/service/v1/channels/${channelId}`)
-            .then(r => r.json())
-            .then(data => data['content'])
-            .then(content => content?.channelId ? content : null)
-    }
-
-    async video(videoNo: string | number): Promise<Video> {
-        return this.fetch(`/service/v1/videos/${videoNo}`)
-            .then(r => r.json())
-            .then(r => r['content'] ?? null)
+    get hasAuth() {
+        return !!(this.options.nidAuth && this.options.nidSession)
     }
 
     get chat(): ChzzkChatFunc {
@@ -69,6 +52,25 @@ export class ChzzkClient {
         }
 
         return func
+    }
+
+    async user(): Promise<User> {
+        return this.fetch(`${this.options.baseUrls.gameBaseUrl}/v1/user/getUserStatus`)
+            .then(r => r.json())
+            .then(data => data['content'] ?? null)
+    }
+
+    async channel(channelId: string): Promise<Channel> {
+        return this.fetch(`/service/v1/channels/${channelId}`)
+            .then(r => r.json())
+            .then(data => data['content'])
+            .then(content => content?.channelId ? content : null)
+    }
+
+    async video(videoNo: string | number): Promise<Video> {
+        return this.fetch(`/service/v1/videos/${videoNo}`)
+            .then(r => r.json())
+            .then(r => r['content'] ?? null)
     }
 
     fetch(pathOrUrl: string, options?: RequestInit): Promise<Response> {

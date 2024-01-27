@@ -109,7 +109,7 @@ export interface Profile {
     userIdHash: string
     nickname: string
     profileImageUrl?: string
-    userRoleCode: string
+    userRoleCode: "common_user" | "streamer" | "streaming_chat_manager" | "streaming_channel_manager" | "manager"
     badge?: {
         imageUrl: string
     }

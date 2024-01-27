@@ -1,12 +1,10 @@
 import WebSocket, {MessageEvent} from "isomorphic-ws"
-import {ChatCmd, ChatType, ChzzkChatOptions, ChzzkChatOptionsWithClient, Events} from "./types"
+import {ChatCmd, ChatType, ChzzkChatOptions, ChzzkChatOptionsWithClient, Events, Profile} from "./types"
 import {ChzzkClient} from "../client"
 import {ChzzkAPIBaseUrls} from "../types"
 import {DEFAULT_BASE_URLS, IS_BROWSER} from "../const"
 
 export class ChzzkChat {
-    private _connected: boolean = false
-
     private readonly client: ChzzkClient
     private ws: WebSocket
     private options: ChzzkChatOptions
@@ -46,6 +44,16 @@ export class ChzzkChat {
         this.client = options.client ?? new ChzzkClient({baseUrls: options.baseUrls})
     }
 
+    private _connected: boolean = false
+
+    get connected() {
+        return this._connected
+    }
+
+    get chatChannelId() {
+        return this.options.chatChannelId
+    }
+
     static fromClient(chatChannelId: string, client: ChzzkClient) {
         return new ChzzkChat({
             chatChannelId,
@@ -64,14 +72,6 @@ export class ChzzkChat {
         chzzkChat.uid = uid
 
         return chzzkChat
-    }
-
-    get connected() {
-        return this._connected
-    }
-
-    get chatChannelId() {
-        return this.options.chatChannelId
     }
 
     async connect() {
@@ -163,6 +163,13 @@ export class ChzzkChat {
         this._connected = false
     }
 
+    async reconnect() {
+        this.isReconnect = true
+
+        await this.disconnect()
+        await this.connect()
+    }
+
     requestRecentChat(count: number = 50) {
         if (!this._connected) {
             throw new Error('Not connected')
@@ -206,6 +213,18 @@ export class ChzzkChat {
             tid: 3,
             ...this.defaults
         }))
+    }
+
+    async selfProfile(): Promise<Profile> {
+        if (!this._connected) {
+            throw new Error('Not connected')
+        }
+
+        if (!this.uid) {
+            throw new Error('Not logged in')
+        }
+
+        return await this.client.chat.profileCard(this.options.chatChannelId, this.uid)
     }
 
     emit(event: string, data: any) {
@@ -327,10 +346,8 @@ export class ChzzkChat {
 
             if (status.chatChannelId != this.options.chatChannelId) {
                 this.options.chatChannelId = status.chatChannelId
-                this.isReconnect = true
 
-                await this.disconnect()
-                await this.connect()
+                await this.reconnect()
             }
         }, this.options.pollInterval)
     }
