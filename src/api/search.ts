@@ -13,6 +13,16 @@ export const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
     offset: 0
 }
 
+export interface LoungeSearchOptions {
+    limit: number
+    offset: number
+}
+
+export const DEFAULT_LOUNGE_SEARCH_OPTIONS: LoungeSearchOptions = {
+    limit: 50,
+    offset: 0
+}
+
 interface SearchResult {
     size: number
     nextOffset: number
@@ -32,6 +42,31 @@ export interface VideoSearchResult extends SearchResult {
 
 export interface LiveSearchResult extends SearchResult {
     lives: Live[]
+}
+
+export interface LoungeSearchResult {
+    totalCount: number
+    offset: number
+    limit: number
+    lounges: Lounge[]
+}
+
+export interface Lounge {
+    originalLoungeId: string
+    loungeId: string
+    loungeName: string
+    titleImageUrl: string
+    logoImageSquareUrl: string
+    exposureGenre: string
+    repPlatform: string
+    pcLandingUrl: string
+    mobileLandingUrl: string
+    bgColor: string
+    pcBgColor: string
+    mobileBgColor: string
+    createdDate: string
+    updatedDate: string
+    officialLounge: boolean
 }
 
 export class ChzzkSearch {
@@ -115,6 +150,21 @@ export class ChzzkSearch {
         return this.client.fetch(`${this.client.options.baseUrls.gameBaseUrl}/v2/search/lounges/auto-complete?${params}`)
             .then(r => r.json())
             .then(data => data['content']['data'])
+    }
+
+    async lounges(
+        keyword: string,
+        options: LoungeSearchOptions = DEFAULT_LOUNGE_SEARCH_OPTIONS
+    ): Promise<string[]> {
+        const params = new URLSearchParams({
+            keyword,
+            limit: options.limit.toString(),
+            offset: options.offset.toString()
+        }).toString()
+
+        return this.client.fetch(`${this.client.options.baseUrls.gameBaseUrl}/v2/search/lounges?${params}`)
+            .then(r => r.json())
+            .then(data => data['content'])
     }
 
     private async search(type: string, keyword: string, options: SearchOptions = DEFAULT_SEARCH_OPTIONS): Promise<SearchResultWithData> {
