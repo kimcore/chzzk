@@ -133,6 +133,7 @@ import {ChzzkChat} from "chzzk"
 // script 태그에서 사용할 경우
 import {ChzzkChat} from "https://cdn.skypack.dev/chzzk"
 ```
+
 ```ts
 // chatChannelId, accessToken 값을 제공해야 합니다. (해당 값들은 서버 환경에서만 불러올 수 있음)
 const client = new ChzzkChat({
@@ -140,6 +141,7 @@ const client = new ChzzkChat({
     accessToken
 })
 ```
+
 ## CORS 우회 방법
 
 `baseUrls` 옵션을 설정하여 ChzzkClient가 요청을 보내는 API 주소를 변경할 수 있습니다.
