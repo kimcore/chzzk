@@ -120,6 +120,33 @@ export interface LiveDetail extends Live {
     userAdultStatus?: string
 }
 
+export interface LiveSettingParams {
+    adult: boolean
+    categoryType?: string
+    chatActive: boolean
+    chatAvailableGroup: string
+    defaultLiveTitle: string
+    defaultThumbnailImageUrl?: string
+    liveCategory?: string
+    paidPromotion: boolean
+}
+
+export interface LiveSetting {
+    defaultLiveTitle: string
+    category: {
+        categoryType?: "GAME" | "ETC"
+        liveCategory?: string
+        liveCategoryValue?: string
+    }
+    defaultThumbnailImageUrl?: string
+    chatActive: boolean
+    chatAvailableGroup: string
+    paidPromotion: boolean
+    adult: boolean
+    chatAvailableCondition: string
+    minFollowerMinute: number
+}
+
 export class ChzzkLive {
     private client: ChzzkClient
 
@@ -171,5 +198,15 @@ export class ChzzkLive {
                     livePlayback
                 }
             })
+    }
+
+    async setting(channelId: string, params: LiveSettingParams): Promise<LiveSetting> {
+        return this.client.fetch(`/manage/v1/channels/${channelId}/live-setting`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(params)
+        })
+            .then(r => r.json())
+            .then(data => data['content'] ?? null)
     }
 }
