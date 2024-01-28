@@ -200,12 +200,14 @@ export class ChzzkLive {
             })
     }
 
-    async setting(channelId: string, params: LiveSettingParams): Promise<LiveSetting> {
-        return this.client.fetch(`/manage/v1/channels/${channelId}/live-setting`, {
+    async setting(channelId: string, params?: LiveSettingParams): Promise<LiveSetting> {
+        const options = params ? {
             method: "PUT",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify(params)
-        })
+        } : null
+
+        return this.client.fetch(`/manage/v1/channels/${channelId}/live-setting`, options)
             .then(r => r.json())
             .then(data => data['content'] ?? null)
     }
