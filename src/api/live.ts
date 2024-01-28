@@ -136,7 +136,7 @@ export interface LiveSetting {
     category: {
         categoryType?: "GAME" | "ETC"
         liveCategory?: string
-        liveCategoryValue?: string
+        liveCategoryName?: string
     }
     defaultThumbnailImageUrl?: string
     chatActive: boolean
