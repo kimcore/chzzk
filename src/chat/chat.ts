@@ -342,10 +342,12 @@ export class ChzzkChat {
         if (!this.options.pollInterval || this.pollIntervalId) return
 
         this.pollIntervalId = setInterval(async () => {
-            const status = await this.client.live.status(this.options.channelId)
+            const chatChannelId = await this.client.live.status(this.options.channelId)
+                .then(status => status?.chatChannelId)
+                .catch(() => null)
 
-            if (status.chatChannelId != this.options.chatChannelId) {
-                this.options.chatChannelId = status.chatChannelId
+            if (chatChannelId && chatChannelId != this.options.chatChannelId) {
+                this.options.chatChannelId = chatChannelId
 
                 await this.reconnect()
             }
