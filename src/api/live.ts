@@ -125,6 +125,7 @@ export interface LiveSettingParams {
     categoryType?: string
     chatActive: boolean
     chatAvailableGroup: string
+    chatAvailableCondition: string
     defaultLiveTitle: string
     defaultThumbnailImageUrl?: string
     liveCategory?: string
