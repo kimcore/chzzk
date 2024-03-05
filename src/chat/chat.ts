@@ -216,15 +216,19 @@ export class ChzzkChat {
     }
 
     async selfProfile(): Promise<Profile> {
-        if (!this._connected) {
-            throw new Error('Not connected')
-        }
-
         if (!this.uid) {
             throw new Error('Not logged in')
         }
 
-        return await this.client.chat.profileCard(this.options.chatChannelId, this.uid)
+        return await this.profile(this.uid)
+    }
+
+    async profile(uid: string): Promise<Profile> {
+        if (!this._connected) {
+            throw new Error('Not connected')
+        }
+
+        return await this.client.chat.profileCard(this.options.chatChannelId, uid)
     }
 
     emit(event: string, data: any) {
@@ -244,6 +248,8 @@ export class ChzzkChat {
     private async handleMessage(data: MessageEvent) {
         const json = JSON.parse(data.data as string)
         const body = json['bdy']
+
+        this.emit('raw', json)
 
         switch (json.cmd) {
             case ChatCmd.CONNECTED:
@@ -295,17 +301,12 @@ export class ChzzkChat {
                 break
 
             case ChatCmd.NOTICE:
-                this.emit('notice', this.parseChat(body))
+                this.emit('notice', Object.keys(body).length != 0 ? this.parseChat(body) : null)
                 break
 
             case ChatCmd.BLIND:
                 this.emit('blind', body)
-
-            // case ChatCmd.PENALTY:
-            // case ChatCmd.EVENT:
         }
-
-        this.emit('raw', json)
 
         if (json.cmd != ChatCmd.PONG) {
             this.startPingTimer()
@@ -315,6 +316,20 @@ export class ChzzkChat {
     private parseChat(chat: any, isRecent: boolean = false) {
         const profile = JSON.parse(chat['profile'])
         const extras = chat['extras'] ? JSON.parse(chat['extras']) : null
+
+        const params = extras?.['params']
+        const registerChatProfileJson = params?.['registerChatProfileJson']
+        const targetChatProfileJson = params?.['targetChatProfileJson']
+
+        if (registerChatProfileJson && targetChatProfileJson) {
+            params['registerChatProfile'] = JSON.parse(registerChatProfileJson)
+            params['targetChatProfile'] = JSON.parse(targetChatProfileJson)
+
+            delete params['registerChatProfileJson']
+            delete params['targetChatProfileJson']
+
+            extras['params'] = params
+        }
 
         const message = chat['msg'] || chat['content']
         const memberCount = chat['mbrCnt'] || chat['memberCount']

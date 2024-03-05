@@ -1,5 +1,8 @@
 {
     "name": "chzzk",
+    "version": "1.5.0",
+    "license": "MIT",
+    "description": "네이버 라이브 스트리밍 서비스 CHZZK의 비공식 API 라이브러리",
     "keywords": [
         "chzzk"
     ],
@@ -22,9 +25,6 @@
         "url": "https://github.com/kimcore/chzzk/issues",
         "email": "kimcoreovo@gmail.com"
     },
-    "license": "MIT",
-    "description": "네이버 라이브 스트리밍 서비스 CHZZK의 비공식 API 라이브러리",
-    "version": "1.4.2",
     "dependencies": {
         "isomorphic-ws": "^5.0.0",
         "ws": "^8.15.1"

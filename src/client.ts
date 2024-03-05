@@ -1,18 +1,19 @@
 import {ChzzkChat, ChzzkChatOptions} from "./chat"
-import {Channel, ChzzkLive, ChzzkSearch, Video} from "./api"
+import {Channel, ChzzkLive, ChzzkManage, ChzzkSearch, Video} from "./api"
 import {ChzzkChatFunc, ChzzkClientOptions} from "./types"
 import {User} from "./api/user"
 import {DEFAULT_BASE_URLS} from "./const"
+import {accessToken, notice, NoticeOptions, profileCard} from "./api/chat"
 
 export class ChzzkClient {
     readonly options: ChzzkClientOptions
     live = new ChzzkLive(this)
     search = new ChzzkSearch(this)
+    manage = new ChzzkManage(this)
 
     constructor(options: ChzzkClientOptions = {}) {
-        if (!options.baseUrls) {
-            options.baseUrls = DEFAULT_BASE_URLS
-        }
+        options.baseUrls = options.baseUrls || DEFAULT_BASE_URLS
+        options.userAgent = options.userAgent || "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"
 
         this.options = options
     }
@@ -39,17 +40,9 @@ export class ChzzkClient {
             })
         }
 
-        func.accessToken = async (chatChannelId: string) => {
-            const r = await this.fetch(`${this.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${chatChannelId}&chatType=STREAMING`)
-            const data = await r.json()
-            return data['content'] ?? null
-        }
-
-        func.profileCard = async (chatChannelId: string, userIdHash: string) => {
-            const r = await this.fetch(`${this.options.baseUrls.gameBaseUrl}/v1/chats/${chatChannelId}/users/${userIdHash}/profile-card?chatType=STREAMING`)
-            const data = await r.json()
-            return data['content'] ?? null
-        }
+        func.accessToken = async (chatChannelId: string) => accessToken(this, chatChannelId)
+        func.profileCard = async (chatChannelId: string, userIdHash: string) => profileCard(this, chatChannelId, userIdHash)
+        func.notice = async (chatChannelId: string, options?: NoticeOptions) => notice(this, chatChannelId, options)
 
         return func
     }
@@ -74,7 +67,10 @@ export class ChzzkClient {
     }
 
     fetch(pathOrUrl: string, options?: RequestInit): Promise<Response> {
-        const headers = options?.headers || {}
+        const headers = {
+            "User-Agent": this.options.userAgent,
+            ...(options?.headers || {})
+        }
 
         if (this.hasAuth) {
             headers["Cookie"] = `NID_AUT=${this.options.nidAuth}; NID_SES=${this.options.nidSession}`

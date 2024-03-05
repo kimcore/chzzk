@@ -75,11 +75,12 @@ export interface ChatEvent extends EventWithProfile, EventWithMessage, EventWith
     extras?: ChatExtras
 }
 
-export interface DonationEvent extends EventWithProfile, EventWithMessage, EventWithMemberCount, EventWithIsRecent {
+export interface DonationEvent extends EventWithMessage, EventWithMemberCount, EventWithIsRecent {
+    profile?: Profile
     extras: DonationExtras
 }
 
-export interface SystemMessageEvent extends EventWithMessage, EventWithMemberCount, EventWithIsRecent {
+export interface SystemMessageEvent extends EventWithMessage, EventWithIsRecent {
     extras: SystemMessageExtras
 }
 
@@ -129,6 +130,13 @@ export interface StreamingProperty {
             imageUrl: string
         }
     },
+    subscription?: {
+        accumulativeMonth: number
+        tier: number
+        badge: {
+            imageUrl: string
+        }
+    },
     following?: {
         followDate: string
     }
@@ -145,7 +153,7 @@ export interface ActivityBadge {
 
 interface Extras {
     chatType: "STREAMING"
-    emojis: Record<string, string> | string
+    emojis: Record<string, string> | ''
     osType: "PC" | "AOS" | "IOS"
     streamingChannelId: string
 }
@@ -165,7 +173,7 @@ export interface SystemMessageExtras {
     description: string
     styleType: number
     visibleRoles: string[]
-    params: {
+    params?: {
         registerNickname: string
         targetNickname: string
         registerChatProfile: Profile

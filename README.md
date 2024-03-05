@@ -7,10 +7,11 @@
 현재 구현된 기능은 다음과 같습니다.
 
 - 로그인 (쿠키 사용)
-- 검색 (채널, 영상, 생방송)
+- 검색 (채널, 영상, 생방송, 라운지, 자동완성)
 - 채널 정보 조회
 - 방송 상태 및 상세 정보 조회
-- 채팅 (일부 이벤트 미지원)
+- 채팅
+- 관리 (채팅 제한, 활동 제한, 방송 설정, 금칙어 설정 등)
 
 ## 설치
 
@@ -37,7 +38,7 @@ const options = {
 const client = new ChzzkClient(options)
 
 // 채널 검색
-const result = await client.search.channels("녹두로로")
+const result = await client.search.channels("녹두로")
 const channel = result.channels[0]
 
 // 설정된 방송 정보, 방송 중이 아닐 경우에도 정보가 존재할 수 있음
@@ -61,19 +62,16 @@ const chzzkChat = client.chat({
     pollInterval: 30 * 1000
 })
 
-chzzkChat.on('connect', chatChannelId => {
-    console.log(`Connected to ${chatChannelId}`)
+chzzkChat.on('connect', () => {
+    console.log('Connected')
 
-    // 최근 50개의 채팅을 요청 (선택사항, 이 요청으로 불러와진 채팅 및 도네이션은 isRecent 값이 true)
+    // 최근 50개의 채팅 및 고정 메시지를 요청 (선택사항, 도네 및 시스템 메시지 포함이므로 주의)
     chzzkChat.requestRecentChat(50)
-
-    // 채팅 전송 (로그인 시에만 가능)
-    chzzkChat.sendChat('안녕하세요')
 })
 
 // 재연결 (방송 시작 시)
-chzzkChat.on('reconnect', chatChannelId => {
-    console.log(`Reconnected to ${chatChannelId}`)
+chzzkChat.on('reconnect', newChatChannelId => {
+    console.log(`Reconnected to ${newChatChannelId}`)
 })
 
 // 일반 채팅
@@ -90,26 +88,21 @@ chzzkChat.on('chat', chat => {
 
 // 후원 채팅
 chzzkChat.on('donation', donation => {
-    console.log(`\n>> ${donation.profile.nickname} 님이 ${donation.extras.payAmount}원 후원`)
+    console.log(`\n>> ${donation.profile?.nickname ?? "익명"} 님이 ${donation.extras.payAmount}원 후원`)
     if (donation.message) {
         console.log(`>> ${donation.message}`)
     }
     console.log()
 })
 
-// 시스템 메시지
-// !!! 현시점에서 제대로 된 테스트가 불가하기에, systemMessage 이벤트는 사용하지 않는 것을 권장합니다 !!!
+// 시스템 메시지 (채팅 제한, 활동 제한, 운영자 임명 등)
 chzzkChat.on('systemMessage', systemMessage => {
     console.log(systemMessage.extras.description)
 })
 
-// 채팅 블라인드
-chzzkChat.on('blind', blind => {
-    console.log(blind)
-})
-
 // 고정 메시지
 chzzkChat.on('notice', notice => {
+    // 고정 해제 시 null
     console.log(notice)
 })
 

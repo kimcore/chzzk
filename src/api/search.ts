@@ -9,7 +9,7 @@ export interface SearchOptions {
 }
 
 export const DEFAULT_SEARCH_OPTIONS: SearchOptions = {
-    size: 12,
+    size: 13,
     offset: 0
 }
 
@@ -155,7 +155,7 @@ export class ChzzkSearch {
     async lounges(
         keyword: string,
         options: LoungeSearchOptions = DEFAULT_LOUNGE_SEARCH_OPTIONS
-    ): Promise<string[]> {
+    ): Promise<LoungeSearchResult> {
         const params = new URLSearchParams({
             keyword,
             limit: options.limit.toString(),
