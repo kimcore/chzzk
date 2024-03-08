@@ -292,6 +292,9 @@ export class ChzzkChat {
                         case ChatType.DONATION:
                             this.emit('donation', parsed)
                             break
+                        case ChatType.SUBSCRIPTION:
+                            this.emit('subscription', parsed)
+                            break
                         case ChatType.SYSTEM_MESSAGE:
                             this.emit('systemMessage', parsed)
                             break

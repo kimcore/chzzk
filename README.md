@@ -88,11 +88,16 @@ chzzkChat.on('chat', chat => {
 
 // 후원 채팅
 chzzkChat.on('donation', donation => {
-    console.log(`\n>> ${donation.profile?.nickname ?? "익명"} 님이 ${donation.extras.payAmount}원 후원`)
+    console.log(`\n>> ${donation.profile?.nickname ?? "익명의 후원자"} 님이 ${donation.extras.payAmount}원 후원`)
     if (donation.message) {
         console.log(`>> ${donation.message}`)
     }
     console.log()
+})
+
+// 구독
+chzzkChat.on('subscription', subscription => {
+    console.log(`${subscription.profile.nickname} 님이 ${subscription.extras.month} 개월 동안 ${subscription.extras.tierName} 구독중`)
 })
 
 // 시스템 메시지 (채팅 제한, 활동 제한, 운영자 임명 등)

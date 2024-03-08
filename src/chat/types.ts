@@ -38,12 +38,14 @@ export enum ChatType {
     VIDEO = 4,
     RICH = 5,
     DONATION = 10,
+    SUBSCRIPTION = 11,
     SYSTEM_MESSAGE = 30
 }
 
 export interface Events {
     chat: ChatEvent
     donation: DonationEvent
+    subscription: SubscriptionEvent
     systemMessage: SystemMessageEvent
     notice: NoticeEvent
     blind: BlindEvent
@@ -78,6 +80,11 @@ export interface ChatEvent extends EventWithProfile, EventWithMessage, EventWith
 export interface DonationEvent extends EventWithMessage, EventWithMemberCount, EventWithIsRecent {
     profile?: Profile
     extras: DonationExtras
+}
+
+export interface SubscriptionEvent extends EventWithMessage, EventWithMemberCount, EventWithIsRecent {
+    profile: Profile,
+    extras: SubscriptionExtras
 }
 
 export interface SystemMessageEvent extends EventWithMessage, EventWithIsRecent {
@@ -167,6 +174,13 @@ export interface DonationExtras extends Extras {
     payAmount: number
     weeklyRankList: DonationRank[],
     donationUserWeeklyRank: number
+}
+
+export interface SubscriptionExtras {
+    month: number
+    tierName: string
+    nickname: string
+    tierNo: number
 }
 
 export interface SystemMessageExtras {
