@@ -76,7 +76,7 @@ export class ChzzkClient {
             headers["Cookie"] = `NID_AUT=${this.options.nidAuth}; NID_SES=${this.options.nidSession}`
         }
 
-        if (pathOrUrl.startsWith("/")) {
+        if (pathOrUrl.startsWith("/") && !pathOrUrl.startsWith(this.options.baseUrls.gameBaseUrl)) {
             pathOrUrl = `${this.options.baseUrls.chzzkBaseUrl}${pathOrUrl}`
         }
 
