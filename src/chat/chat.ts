@@ -184,7 +184,7 @@ export class ChzzkChat {
         }))
     }
 
-    sendChat(message: string) {
+    sendChat(message: string, emojis: Record<string, string> = {}) {
         if (!this._connected) {
             throw new Error('Not connected')
         }
@@ -195,7 +195,7 @@ export class ChzzkChat {
 
         const extras = {
             chatType: "STREAMING",
-            emojis: "",
+            emojis,
             osType: "PC",
             streamingChannelId: this.options.chatChannelId
         }
