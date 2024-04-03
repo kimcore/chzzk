@@ -170,10 +170,13 @@ export interface ChatExtras extends Extras {
 }
 
 export interface DonationExtras extends Extras {
+    isAnonymous: boolean
+    donationType: "CHAT" | "VIDEO"
+    nickname?: string
     payType: string
     payAmount: number
-    weeklyRankList: DonationRank[],
-    donationUserWeeklyRank: number
+    weeklyRankList: DonationRank[]
+    donationUserWeeklyRank?: DonationRank
 }
 
 export interface SubscriptionExtras {

@@ -36,3 +36,14 @@ export function userRoleName(userRoleCode: string) {
             return "알 수 없음"
     }
 }
+
+export function donationTypeName(donationType: string) {
+    switch (donationType) {
+        case "CHAT":
+            return "채팅 후원"
+        case "VIDEO":
+            return "영상 후원"
+        default:
+            return "알 수 없음"
+    }
+}

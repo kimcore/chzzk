@@ -88,7 +88,7 @@ chzzkChat.on('chat', chat => {
 
 // 후원 채팅
 chzzkChat.on('donation', donation => {
-    console.log(`\n>> ${donation.profile?.nickname ?? "익명의 후원자"} 님이 ${donation.extras.payAmount}원 후원`)
+    console.log(`\n>> ${donation.profile?.nickname ?? "익명의 후원자"} 님의 ${donation.extras.payAmount}원 ${donationTypeName(donation.extras.donationType)}`)
     if (donation.message) {
         console.log(`>> ${donation.message}`)
     }
