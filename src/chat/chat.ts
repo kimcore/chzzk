@@ -397,6 +397,7 @@ export class ChzzkChat {
     }
 
     private sendPing() {
+        if (!this.ws) return;
         this.ws.send(JSON.stringify({
             cmd: ChatCmd.PING,
             ver: "2"
