@@ -24,14 +24,20 @@ export interface LiveSettingParams {
     defaultThumbnailImageUrl?: string
     liveCategory?: string
     paidPromotion: boolean
+    minFollowerMinute: number
+    chatDonationRankingExposure: boolean
+    tags: Array<string>
+    clipActive: boolean
 }
 
 export interface LiveSetting {
     defaultLiveTitle: string
     category: {
         categoryType?: "GAME" | "ETC"
-        liveCategory?: string
-        liveCategoryName?: string
+        categoryId?: string
+        categoryValue?: string
+        posterImageUrl?: string
+        tags?: Array<string>
     }
     defaultThumbnailImageUrl?: string
     chatActive: boolean
@@ -40,6 +46,9 @@ export interface LiveSetting {
     adult: boolean
     chatAvailableCondition: string
     minFollowerMinute: number
+    chatDonationRankingExposure: boolean
+    tags: Array<string>
+    clipActive: boolean
 }
 
 export interface ChatRule {
