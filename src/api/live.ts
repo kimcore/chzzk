@@ -10,12 +10,14 @@ export interface Live {
     openDate: string
     liveId: number
     adult: boolean
+    clipActive: boolean
+    tags: string[]
     chatChannelId: string
     categoryType?: string
     liveCategory?: string
     liveCategoryValue?: string
-    channelId: string
     livePlayback: LivePlayback
+    p2pQuality: string[] // unknown
     channel: PartialChannel
 }
 
@@ -48,7 +50,6 @@ export interface LivePlayback {
     }
     multiview: [] // unknown
 }
-
 
 export interface Media {
     mediaId: string
@@ -90,14 +91,21 @@ export interface LiveStatus {
     status: "OPEN" | "CLOSE"
     concurrentUserCount: number
     accumulateCount: number
+    paidPromotion: boolean
     adult: boolean
     chatChannelId: string
+    tags: string[]
     categoryType: string
     liveCategory?: string
     liveCategoryValue?: string
     livePollingStatus: LivePollingStatus
     faultStatus?: string // unknown
     userAdultStatus?: string
+    chatActive: boolean
+    chatAvailableGroup: string
+    chatAvailableCondition: string
+    minFollowerMinute: number
+    chatDonationRankingExposure: boolean
 }
 
 export interface LivePollingStatus {
@@ -118,6 +126,7 @@ export interface LiveDetail extends Live {
     minFollowerMinute: number
     livePollingStatus: LivePollingStatus
     userAdultStatus?: string
+    chatDonationRankingExposure: boolean
 }
 
 export class ChzzkLive {
