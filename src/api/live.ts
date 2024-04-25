@@ -10,14 +10,13 @@ export interface Live {
     openDate: string
     liveId: number
     adult: boolean
-    clipActive: boolean
     tags: string[]
     chatChannelId: string
     categoryType?: string
     liveCategory?: string
     liveCategoryValue?: string
+    channelId: string
     livePlayback: LivePlayback
-    p2pQuality: string[] // unknown
     channel: PartialChannel
 }
 
@@ -119,11 +118,13 @@ export interface LivePollingStatus {
 export interface LiveDetail extends Live {
     status: "OPEN" | "CLOSE"
     closeDate?: string
+    clipActive: boolean
     chatActive: boolean
     chatAvailableGroup: string
     paidPromotion: boolean
     chatAvailableCondition: string
     minFollowerMinute: number
+    p2pQuality: string[] // unknown
     livePollingStatus: LivePollingStatus
     userAdultStatus?: string
     chatDonationRankingExposure: boolean
