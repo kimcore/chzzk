@@ -1,7 +1,7 @@
 import {PartialChannel} from "./channel"
 import {ChzzkClient} from "../client"
 
-export interface Live {
+export interface BaseLive {
     liveTitle: string
     liveImageUrl: string
     defaultThumbnailImageUrl?: string
@@ -15,9 +15,13 @@ export interface Live {
     categoryType?: string
     liveCategory?: string
     liveCategoryValue?: string
-    channelId: string
     livePlayback: LivePlayback
     channel: PartialChannel
+}
+
+// used in search.ts
+export interface Live extends BaseLive {
+    channelId: string
 }
 
 export interface LivePlayback {
@@ -115,7 +119,7 @@ export interface LivePollingStatus {
     callPeriodMilliSecond: number
 }
 
-export interface LiveDetail extends Live {
+export interface LiveDetail extends BaseLive {
     status: "OPEN" | "CLOSE"
     closeDate?: string
     clipActive: boolean
