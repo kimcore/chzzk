@@ -26,7 +26,7 @@ export interface LiveSettingParams {
     paidPromotion: boolean
     minFollowerMinute: number
     chatDonationRankingExposure: boolean
-    tags: Array<string>
+    tags: string[]
     clipActive: boolean
 }
 
@@ -37,7 +37,7 @@ export interface LiveSetting {
         categoryId?: string
         categoryValue?: string
         posterImageUrl?: string
-        tags?: Array<string>
+        tags?: string[]
     }
     defaultThumbnailImageUrl?: string
     chatActive: boolean
@@ -47,7 +47,7 @@ export interface LiveSetting {
     chatAvailableCondition: string
     minFollowerMinute: number
     chatDonationRankingExposure: boolean
-    tags: Array<string>
+    tags: string[]
     clipActive: boolean
 }
 
