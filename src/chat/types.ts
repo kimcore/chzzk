@@ -171,12 +171,19 @@ export interface ChatExtras extends Extras {
 
 export interface DonationExtras extends Extras {
     isAnonymous: boolean
-    donationType: "CHAT" | "VIDEO"
+    donationType: "CHAT" | "VIDEO" | "MISSION"
     nickname?: string
     payType: string
     payAmount: number
     weeklyRankList: DonationRank[]
     donationUserWeeklyRank?: DonationRank
+    durationTime?: number
+    missionDonationId?: string
+    missionCreatedTime?: string
+    missionEndTime?: string
+    missionText?: string
+    status?: string
+    success?: boolean
 }
 
 export interface SubscriptionExtras {

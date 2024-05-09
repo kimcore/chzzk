@@ -43,6 +43,8 @@ export function donationTypeName(donationType: string) {
             return "채팅 후원"
         case "VIDEO":
             return "영상 후원"
+        case "MISSION":
+            return "미션 후원"
         default:
             return "알 수 없음"
     }
