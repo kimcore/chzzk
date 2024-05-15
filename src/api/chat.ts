@@ -9,6 +9,13 @@ export interface NoticeOptions {
     streamingChannelId: string
 }
 
+export interface BlindOptions {
+    message: string
+    messageTime: number
+    messageUserIdHash: string
+    streamingChannelId: string
+}
+
 export async function accessToken(client: ChzzkClient, chatChannelId: string) {
     const r = await client.fetch(`${client.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${chatChannelId}&chatType=STREAMING`)
     const data = await r.json()
@@ -30,6 +37,18 @@ export async function notice(client: ChzzkClient, chatChannelId: string, options
             chatType: "STREAMING",
             ...(options || {}),
             extras: options?.extras ? (typeof options.extras === "string" ? options.extras : JSON.stringify(options.extras)) : null
+        })
+    })
+}
+
+export async function blind(client: ChzzkClient, chatChannelId: string, options?: BlindOptions) {
+    return client.fetch('https://comm-api.game.naver.com/nng_main/v1/chats/blind-message', {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            channelId: chatChannelId,
+            chatType: "STREAMING",
+            ...(options || {})
         })
     })
 }
