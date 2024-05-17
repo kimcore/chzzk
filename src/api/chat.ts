@@ -41,8 +41,8 @@ export async function notice(client: ChzzkClient, chatChannelId: string, options
     })
 }
 
-export async function blind(client: ChzzkClient, chatChannelId: string, options?: BlindOptions) {
-    return client.fetch('https://comm-api.game.naver.com/nng_main/v1/chats/blind-message', {
+export async function blind(client: ChzzkClient, chatChannelId: string, options: BlindOptions) {
+    return client.fetch(`${client.options.baseUrls.gameBaseUrl}/v1/chats/blind-message`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({

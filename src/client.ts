@@ -1,9 +1,9 @@
 import {ChzzkChat, ChzzkChatOptions} from "./chat"
 import {Channel, ChzzkLive, ChzzkManage, ChzzkSearch, Video} from "./api"
 import {ChzzkChatFunc, ChzzkClientOptions} from "./types"
+import {accessToken, blind, BlindOptions, notice, NoticeOptions, profileCard} from "./api/chat"
 import {User} from "./api/user"
 import {DEFAULT_BASE_URLS} from "./const"
-import {accessToken, notice, NoticeOptions, profileCard} from "./api/chat"
 
 export class ChzzkClient {
     readonly options: ChzzkClientOptions
@@ -43,6 +43,7 @@ export class ChzzkClient {
         func.accessToken = async (chatChannelId: string) => accessToken(this, chatChannelId)
         func.profileCard = async (chatChannelId: string, userIdHash: string) => profileCard(this, chatChannelId, userIdHash)
         func.notice = async (chatChannelId: string, options?: NoticeOptions) => notice(this, chatChannelId, options)
+        func.blind = async (chatChannelId: string, options: BlindOptions) => blind(this, chatChannelId, options)
 
         return func
     }
