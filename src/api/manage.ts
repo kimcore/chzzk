@@ -258,6 +258,26 @@ export class ChzzkManage {
         })
     }
 
+    async removeProhibitWord(channelId: string, prohibitWordNo: number) {
+        return this.client.fetch(`/manage/v1/channels/${channelId}/chats/prohibit-words/${prohibitWordNo}`, {
+            method: "DELETE"
+        })
+    }
+
+    async removeAllProhibitWords(channelId: string) {
+        return this.client.fetch(`/manage/v1/channels/${channelId}/chats/prohibit-words`, {
+            method: "DELETE"
+        })
+    }
+
+    async editProhibitWord(channelId: string, prohibitWordNo: number, prohibitWord: string) {
+        return this.client.fetch(`/manage/v1/channels/${channelId}/chats/prohibit-words/${prohibitWordNo}`, {
+            method: "PUT",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({prohibitWord})
+        })
+    }
+
     async stream(channelId: string): Promise<Stream> {
         return this.client.fetch(`/manage/v1/channels/${channelId}/streams`)
             .then(r => r.json())
