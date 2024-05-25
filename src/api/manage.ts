@@ -243,18 +243,18 @@ export class ChzzkManage {
     }
 
     async prohibitWords(channelId: string): Promise<ProhibitWord[]> {
-        return this.client.fetch(`/manage/v1/channels/${channelId}/prohibit-words`)
+        return this.client.fetch(`/manage/v1/channels/${channelId}/chats/prohibit-words`)
             .then(r => r.json())
             .then(data => data['content'] ?? null)
             .then(content => content['prohibitWords'] as ProhibitWord[])
             .catch(() => null)
     }
 
-    async addProhibitWord(channelId: string, word: string) {
-        return this.client.fetch(`/manage/v1/channels/${channelId}/prohibit-words`, {
+    async addProhibitWord(channelId: string, prohibitWord: string) {
+        return this.client.fetch(`/manage/v1/channels/${channelId}/chats/prohibit-words`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({word})
+            body: JSON.stringify({prohibitWord})
         })
     }
 
