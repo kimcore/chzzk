@@ -175,11 +175,11 @@ export class ChzzkManage {
         this.client = client
     }
 
-    async temporaryRestrict(channelId: string, targetId: string): Promise<PartialUser> {
+    async temporaryRestrict(channelId: string, chatChannelId: string, targetId: string): Promise<PartialUser> {
         return this.client.fetch(`/manage/v1/channels/${channelId}/temporary-restrict-users`, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({targetId})
+            body: JSON.stringify({chatChannelId, targetId})
         }).then(r => r.json()).then(data => data['content'] ?? null).catch(() => null)
     }
 
