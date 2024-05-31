@@ -166,8 +166,10 @@ export class ChzzkChat {
     async reconnect() {
         this.isReconnect = true
 
-        await this.disconnect()
-        await this.connect()
+        if (this._connected) {
+            await this.disconnect()
+            await this.connect()
+        }
     }
 
     requestRecentChat(count: number = 50) {
