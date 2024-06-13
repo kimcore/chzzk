@@ -128,10 +128,13 @@ export interface LiveDetail extends BaseLive {
     paidPromotion: boolean
     chatAvailableCondition: string
     minFollowerMinute: number
-    p2pQuality: string[] // unknown
+    p2pQuality: string[]
     livePollingStatus: LivePollingStatus
     userAdultStatus?: string
     chatDonationRankingExposure: boolean
+    adParameter: {
+        tag: string // unknown
+    }
 }
 
 export class ChzzkLive {
