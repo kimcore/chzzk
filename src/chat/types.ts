@@ -146,6 +146,9 @@ export interface StreamingProperty {
     },
     following?: {
         followDate: string
+    },
+    nicknameColor: {
+        colorCode: string
     }
 }
 
