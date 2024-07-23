@@ -19,6 +19,11 @@ export interface BlindOptions {
 export async function accessToken(client: ChzzkClient, chatChannelId: string) {
     const r = await client.fetch(`${client.options.baseUrls.gameBaseUrl}/v1/chats/access-token?channelId=${chatChannelId}&chatType=STREAMING`)
     const data = await r.json()
+
+    if (data['code'] === 42601) {
+        throw new Error('Broadcast is age-restricted, nidAuth, nidSession is required')
+    }
+
     return data['content'] ?? null
 }
 
