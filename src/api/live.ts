@@ -138,7 +138,7 @@ export interface LiveDetail extends BaseLive {
     chatDonationRankingExposure: boolean
     adParameter: {
         tag: string // unknown
-    },
+    }
     dropsCampaignNo?: string // unknown
 }
 
