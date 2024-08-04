@@ -109,6 +109,8 @@ export interface LiveStatus {
     chatAvailableCondition: string
     minFollowerMinute: number
     chatDonationRankingExposure: boolean
+    dropsCampaignNo: string // unknown
+    liveTokenList: string[] // unknown
 }
 
 export interface LivePollingStatus {
@@ -134,7 +136,8 @@ export interface LiveDetail extends BaseLive {
     chatDonationRankingExposure: boolean
     adParameter: {
         tag: string // unknown
-    }
+    },
+    dropsCampaignNo: string // unknown
 }
 
 export class ChzzkLive {
