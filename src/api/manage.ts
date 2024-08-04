@@ -39,19 +39,21 @@ export interface LiveSetting {
         categoryValue?: string
         posterImageUrl?: string
         tags?: string[]
+        dropsCampaignNos?: string[]
     }
     defaultThumbnailImageUrl?: string
     chatActive: boolean
     chatAvailableGroup: string
     paidPromotion: boolean
     adult: boolean
+    krOnlyViewing: boolean
     chatAvailableCondition: string
     minFollowerMinute: number
     chatDonationRankingExposure: boolean
     tags: string[]
     clipActive: boolean
     replayPublishType: string
-    dropsCampaignNo: string
+    dropsCampaignNo?: string
 }
 
 export interface ChatRule {
