@@ -22,6 +22,8 @@ export interface LiveSettingParams {
     chatAvailableCondition: string
     defaultLiveTitle: string
     defaultThumbnailImageUrl?: string
+    dropsCampaignNo?: string
+    krOnlyViewing: boolean
     liveCategory?: string
     paidPromotion: boolean
     minFollowerMinute: number
