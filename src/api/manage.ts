@@ -28,12 +28,13 @@ export interface LiveSettingParams {
     chatDonationRankingExposure: boolean
     tags: string[]
     clipActive: boolean
+    replayPublishType: string
 }
 
 export interface LiveSetting {
     defaultLiveTitle: string
     category: {
-        categoryType?: "GAME" | "ETC"
+        categoryType?: string
         categoryId?: string
         categoryValue?: string
         posterImageUrl?: string
@@ -49,6 +50,8 @@ export interface LiveSetting {
     chatDonationRankingExposure: boolean
     tags: string[]
     clipActive: boolean
+    replayPublishType: string
+    dropsCampaignNo: string
 }
 
 export interface ChatRule {
