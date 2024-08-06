@@ -96,6 +96,7 @@ export interface LiveStatus {
     accumulateCount: number
     paidPromotion: boolean
     adult: boolean
+    krOnlyViewing: boolean
     chatChannelId: string
     tags: string[]
     categoryType: string
@@ -104,11 +105,14 @@ export interface LiveStatus {
     livePollingStatus: LivePollingStatus
     faultStatus?: string // unknown
     userAdultStatus?: string
+    blindType?: string // unknown
     chatActive: boolean
     chatAvailableGroup: string
     chatAvailableCondition: string
     minFollowerMinute: number
     chatDonationRankingExposure: boolean
+    dropsCampaignNo?: string // unknown
+    liveTokenList: string[] // unknown
 }
 
 export interface LivePollingStatus {
@@ -135,6 +139,7 @@ export interface LiveDetail extends BaseLive {
     adParameter: {
         tag: string // unknown
     }
+    dropsCampaignNo?: string // unknown
 }
 
 export class ChzzkLive {

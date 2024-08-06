@@ -69,6 +69,19 @@ export interface Lounge {
     officialLounge: boolean
 }
 
+export interface CategorySearchResult {
+    results: Category[]
+}
+
+export interface Category {
+    categoryType: string
+    categoryId: string
+    categoryValue: string
+    posterImageUrl: string
+    tags: string[]
+    dropsCampaignNos: string[]
+}
+
 export class ChzzkSearch {
     private client: ChzzkClient
 
@@ -163,6 +176,21 @@ export class ChzzkSearch {
         }).toString()
 
         return this.client.fetch(`${this.client.options.baseUrls.gameBaseUrl}/v2/search/lounges?${params}`)
+            .then(r => r.json())
+            .then(data => data['content'])
+    }
+
+    async categories(
+        keyword: string,
+        options: SearchOptions = DEFAULT_SEARCH_OPTIONS
+    ): Promise<CategorySearchResult> {
+        const params = new URLSearchParams({
+            keyword,
+            size: options.size.toString(),
+            offset: options.offset.toString()
+        }).toString()
+
+        return this.client.fetch(`${this.client.options.baseUrls.chzzkBaseUrl}/manage/v1/auto-complete/categories?${params}`)
             .then(r => r.json())
             .then(data => data['content'])
     }
