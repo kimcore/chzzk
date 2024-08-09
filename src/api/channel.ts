@@ -14,3 +14,31 @@ export interface Channel extends PartialChannel {
     followerCount: number
     openLive: boolean
 }
+
+export interface RecommendationChannel {
+    channelId: string
+    channel: {
+        channelId: string
+        channelName: string
+        channelImageUrl: string
+        verifiedMark: boolean
+    },
+    streamer: {
+        openLive: boolean
+    },
+    liveInfo: {
+        liveTitle: string
+        concurrentUserCount: number
+        liveCategoryValue: string
+    },
+    contentLineage: {
+        contentSource: string
+        contentType: string
+        contentTag: {
+            internal: string
+            external: {
+                apiRequestKey: string
+            }
+        }
+    }
+}

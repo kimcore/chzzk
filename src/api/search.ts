@@ -1,4 +1,4 @@
-import {Channel} from "./channel"
+import {Channel, RecommendationChannel} from "./channel"
 import {SearchResultVideo} from "./video"
 import {ChzzkClient} from "../client"
 import {Live} from "./live"
@@ -34,6 +34,10 @@ interface SearchResultWithData extends SearchResult {
 
 export interface ChannelSearchResult extends SearchResult {
     channels: Channel[]
+}
+
+export interface RecommendationChannelsResult {
+    recommendationChannels: RecommendationChannel[]
 }
 
 export interface VideoSearchResult extends SearchResult {
@@ -148,6 +152,12 @@ export class ChzzkSearch {
                 channels: r.data.map((data: Record<string, any>) => data['channel'])
             }
         })
+    }
+
+    async recommendationChannels(): Promise<RecommendationChannelsResult> {
+        return this.client.fetch(`${this.client.options.baseUrls.chzzkBaseUrl}/service/v1/home/recommendation-channels`)
+            .then(r => r.json())
+            .then(data => data['content'])
     }
 
     async autoComplete(
