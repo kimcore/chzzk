@@ -157,7 +157,26 @@ export class ChzzkSearch {
     async recommendationChannels(): Promise<RecommendationChannelsResult> {
         return this.client.fetch(`${this.client.options.baseUrls.chzzkBaseUrl}/service/v1/home/recommendation-channels`)
             .then(r => r.json())
-            .then(data => data['content'])
+            .then(data => {
+                const content = data['content']
+
+                if (!content) return null
+
+                return {
+                    recommendationChannels: content['recommendationChannels'].map((channel: Record<string, any>) => {
+                        const contentLineage = JSON.parse(channel['contentLineage']);
+                        const contentTag = JSON.parse(contentLineage['contentTag']);
+
+                        return {
+                            ...channel,
+                            contentLineage: {
+                                ...contentLineage,
+                                contentTag
+                            }
+                        };
+                    })
+                };
+            })
     }
 
     async autoComplete(
