@@ -1,5 +1,6 @@
 import {ChatAccessToken, ChzzkChat, ChzzkChatOptions, Profile} from "./chat"
 import {BlindOptions, NoticeOptions} from "./api/chat"
+import {Channel, RecommendationChannel} from "./api"
 
 export interface ChzzkAPIBaseUrls {
     chzzkBaseUrl?: string
@@ -19,4 +20,9 @@ export type ChzzkChatFunc = {
     profileCard: (chatChannelId: string, uid: string) => Promise<Profile>
     notice: (chatChannelId: string, notice?: NoticeOptions) => Promise<Response>
     blind: (chatChannelId: string, options: BlindOptions) => Promise<Response>
+}
+
+export type ChzzkChannelFunc = {
+    (channelId: string): Promise<Channel>
+    recommendations: () => Promise<RecommendationChannel[]>
 }

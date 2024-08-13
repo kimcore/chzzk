@@ -1,6 +1,6 @@
 import {ChzzkChat, ChzzkChatOptions} from "./chat"
-import {Channel, ChzzkLive, ChzzkManage, ChzzkSearch, Video} from "./api"
-import {ChzzkChatFunc, ChzzkClientOptions} from "./types"
+import {Channel, ChzzkLive, ChzzkManage, ChzzkSearch, recommendations, Video} from "./api"
+import {ChzzkChannelFunc, ChzzkChatFunc, ChzzkClientOptions} from "./types"
 import {accessToken, blind, BlindOptions, notice, NoticeOptions, profileCard} from "./api/chat"
 import {User} from "./api/user"
 import {DEFAULT_BASE_URLS, DEFAULT_USER_AGENT} from "./const"
@@ -48,17 +48,23 @@ export class ChzzkClient {
         return func
     }
 
+    get channel(): ChzzkChannelFunc {
+        const func = async (channelId: string): Promise<Channel> => {
+            const r = await this.fetch(`/service/v1/channels/${channelId}`)
+            const data = await r.json()
+            const content = data['content']
+            return content?.channelId ? content : null
+        }
+
+        func.recommendations = async () => recommendations(this)
+
+        return func
+    }
+
     async user(): Promise<User> {
         return this.fetch(`${this.options.baseUrls.gameBaseUrl}/v1/user/getUserStatus`)
             .then(r => r.json())
             .then(data => data['content'] ?? null)
-    }
-
-    async channel(channelId: string): Promise<Channel> {
-        return this.fetch(`/service/v1/channels/${channelId}`)
-            .then(r => r.json())
-            .then(data => data['content'])
-            .then(content => content?.channelId ? content : null)
     }
 
     async video(videoNo: string | number): Promise<Video> {

@@ -36,10 +36,6 @@ export interface ChannelSearchResult extends SearchResult {
     channels: Channel[]
 }
 
-export interface RecommendationChannelsResult {
-    recommendationChannels: RecommendationChannel[]
-}
-
 export interface VideoSearchResult extends SearchResult {
     videos: SearchResultVideo[]
 }
@@ -154,31 +150,6 @@ export class ChzzkSearch {
         })
     }
 
-    async recommendationChannels(): Promise<RecommendationChannelsResult> {
-        return this.client.fetch(`${this.client.options.baseUrls.chzzkBaseUrl}/service/v1/home/recommendation-channels`)
-            .then(r => r.json())
-            .then(data => {
-                const content = data['content']
-
-                if (!content) return null
-
-                return {
-                    recommendationChannels: content['recommendationChannels'].map((channel: Record<string, any>) => {
-                        const contentLineage = JSON.parse(channel['contentLineage']);
-                        const contentTag = JSON.parse(contentLineage['contentTag']);
-
-                        return {
-                            ...channel,
-                            contentLineage: {
-                                ...contentLineage,
-                                contentTag
-                            }
-                        };
-                    })
-                };
-            })
-    }
-
     async autoComplete(
         keyword: string,
         options: SearchOptions = DEFAULT_SEARCH_OPTIONS
@@ -219,7 +190,7 @@ export class ChzzkSearch {
             offset: options.offset.toString()
         }).toString()
 
-        return this.client.fetch(`${this.client.options.baseUrls.chzzkBaseUrl}/manage/v1/auto-complete/categories?${params}`)
+        return this.client.fetch(`/manage/v1/auto-complete/categories?${params}`)
             .then(r => r.json())
             .then(data => data['content'])
     }
