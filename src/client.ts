@@ -3,7 +3,7 @@ import {Channel, ChzzkLive, ChzzkManage, ChzzkSearch, Video} from "./api"
 import {ChzzkChatFunc, ChzzkClientOptions} from "./types"
 import {accessToken, blind, BlindOptions, notice, NoticeOptions, profileCard} from "./api/chat"
 import {User} from "./api/user"
-import {DEFAULT_BASE_URLS} from "./const"
+import {DEFAULT_BASE_URLS, DEFAULT_USER_AGENT} from "./const"
 
 export class ChzzkClient {
     readonly options: ChzzkClientOptions
@@ -13,7 +13,7 @@ export class ChzzkClient {
 
     constructor(options: ChzzkClientOptions = {}) {
         options.baseUrls = options.baseUrls || DEFAULT_BASE_URLS
-        options.userAgent = options.userAgent || "Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2049.0 Safari/537.36"
+        options.userAgent = options.userAgent || DEFAULT_USER_AGENT
 
         this.options = options
     }
