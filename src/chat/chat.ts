@@ -100,6 +100,10 @@ export class ChzzkChat {
             ver: "2"
         }
 
+        if(!this.options.chatChannelId){
+            throw new Error('chatChannelId is null. Please ensure it is set before connecting.');
+        }
+
         const serverId = Math.abs(
             this.options.chatChannelId.split("")
                 .map(c => c.charCodeAt(0))
